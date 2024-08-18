@@ -1,0 +1,8 @@
+Credits:
+Submitted: ETTiNGRiNDER
+Decorate: ETTiNGRiNDER
+GLDefs: N/A
+Sounds: N/A
+Sprites: Raven Software (Hexen, Hexen 2), Psygnosis (Hexx)
+Sprite Edit: ETTiNGRiNDER, Infirnex
+Idea Base: Hexen 2 banner / Roman Legion standard
