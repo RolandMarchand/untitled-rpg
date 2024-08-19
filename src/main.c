@@ -44,7 +44,7 @@ int main(void)
 	camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
 	// Load gltf model
-	Model model = LoadModel("map.glb");
+	Model model = LoadModel(RESOURCE_PATH "/models/map.glb");
 	Vector3 position = { 0.0f, 0.0f, 0.0f }; // Set model position
 
 	SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second

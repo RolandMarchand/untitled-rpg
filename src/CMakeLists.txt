@@ -15,9 +15,9 @@ target_compile_options(main PRIVATE -Wall -Wextra)
 # Package the assets folder into a resource package for the game to access files
 add_custom_target(archive_resources
   # Error 12 means the resource is up to date, ignore
-  COMMAND zip -0ru ${RESOURCE} assets > /dev/null || true
+  COMMAND zip -9ru ${RESOURCE} * > /dev/null || true
   COMMAND test -e ${RESOURCE} || (echo "Error: failed to package resources into resource.zip" && false)
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/assets
   COMMENT "Packaging resources"
 )
 # Make the resource package cleanable
