@@ -9,6 +9,10 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_BINARY_DIR}/src)
+
+enable_testing()
 
 add_subdirectory(modules)
 add_subdirectory(src)
+add_subdirectory(tests EXCLUDE_FROM_ALL)

@@ -181,8 +181,10 @@ Error LoadResource()
 
 bool IsResourceLoaded() {
 	struct stat statbuf;
-	mode_t mode = statbuf.st_mode;
-	return stat(RESOURCE_PATH, &statbuf) == 0 /* File exists. */
-		&& S_ISDIR(mode) /* File is a directory. */
-		&& (mode & S_IRWXU) == S_IRWXU; /* File has permissions RWX. */
+	/* File exists. */
+	return stat(RESOURCE_PATH, &statbuf) == 0
+		/* File is a directory. */
+		&& S_ISDIR(statbuf.st_mode)
+		/* File has permissions RWX. */
+		&& (statbuf.st_mode & S_IRWXU) == S_IRWXU;
 }
