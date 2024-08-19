@@ -1,6 +1,8 @@
 #pragma once
 
 #include <limits.h>
+#include <stdbool.h>
+#include "common.h"
 
 #define RESOURCE_PATH "/tmp/untitled_game"
 
@@ -11,15 +13,5 @@
 #define TEXTURES_PATH RESOURCE_PATH "/sprites/textures"
 #define ENTITIES_PATH RESOURCE_PATH "/sprites/entities"
 
-typedef enum {
-	ERR_OK = 0,
-	ERR_RESOURCE_NOT_FOUND,
-	ERR_LOADING_RESOURCES,
-} ResourceError;
-
-typedef struct {
-	ResourceError error;
-	char path[PATH_MAX];
-} Resource;
-
-Resource LoadResource();
+Error LoadResource();
+bool IsResourceLoaded();

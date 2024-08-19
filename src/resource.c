@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <ftw.h>
-#include <limits.h>
 #include <unistd.h>
 #include <libgen.h>
 #include <errno.h>
@@ -93,7 +92,7 @@ void SignalHandler(int sig) {
         exit(sig);
 }
 
-ResourceError RegisterTmpDir()
+Error RegisterTmpDir()
 {
         CleanResource();
 
@@ -122,25 +121,20 @@ ResourceError RegisterTmpDir()
 }
 
 /* Extract a zip archive to a temporary directory and return a resource. */
-Resource ExtractResource(const char *archivePath) {
+Error ExtractResource(const char *archivePath) {
         assert(archivePath != NULL);
 
         mz_zip_archive zip = {0};
-        Resource res = {.error = ERR_OK, .path = RESOURCE_PATH};
 
         /* Initialize the archive reader. */
         if (!mz_zip_reader_init_file(&zip, archivePath, 0)) {
 		ERROR("unable to open resource: %s\n", archivePath);
-                res.error = ERR_LOADING_RESOURCES;
-                res.path[0] = '\0';
-                return res;
+                return ERR_LOADING_RESOURCES;
         }
 
         /* Register disk space to load resources. */
         if (RegisterTmpDir() != ERR_OK) {
-                res.error = ERR_LOADING_RESOURCES;
-                res.path[0] = '\0';
-                return res;
+                return ERR_LOADING_RESOURCES;
         }
 
         /* Iterate over every file of the archive. */
@@ -151,12 +145,11 @@ Resource ExtractResource(const char *archivePath) {
                 if (!mz_zip_reader_file_stat(&zip, i, &fileStat)) {
 			ERROR("unable to open resource: %s\n", archivePath);
                         mz_zip_reader_end(&zip);
-                        res.error = ERR_LOADING_RESOURCES;
-                        res.path[0] = '\0';
-                        return res;
+                        return ERR_LOADING_RESOURCES;
                 }
 
-                snprintf(filePath, sizeof(filePath), "%s/%s", res.path, fileStat.m_filename);
+                snprintf(filePath, sizeof(filePath), RESOURCE_PATH "/%s",
+			 fileStat.m_filename);
 
                 if (mz_zip_reader_is_file_a_directory(&zip, i)) {
                         mkdir(filePath, S_IRWXU);
@@ -166,26 +159,30 @@ Resource ExtractResource(const char *archivePath) {
                 if (!mz_zip_reader_extract_to_file(&zip, i, filePath, 0)) {
 			ERROR("failed to extract file %s\n", fileStat.m_filename);
                         mz_zip_reader_end(&zip);
-                        res.error = ERR_LOADING_RESOURCES;
-                        res.path[0] = '\0';
-                        return res;
+                        return ERR_LOADING_RESOURCES;
                 }
         }
 
         mz_zip_reader_end(&zip);
-        return res;
+        return ERR_OK;
 }
 
-Resource LoadResource()
+Error LoadResource()
 {
         char resourcePath[PATH_MAX];
         GetResourcePath(resourcePath);
 
         if (resourcePath[0] == '\0') {
-                return (Resource){.error = ERR_RESOURCE_NOT_FOUND, .path = ""};
+                return ERR_RESOURCE_NOT_FOUND;
         }
 
-        Resource res = ExtractResource(resourcePath);
+        return ExtractResource(resourcePath);
+}
 
-        return res;
+bool IsResourceLoaded() {
+	struct stat statbuf;
+	mode_t mode = statbuf.st_mode;
+	return stat(RESOURCE_PATH, &statbuf) == 0 /* File exists. */
+		&& S_ISDIR(mode) /* File is a directory. */
+		&& (mode & S_IRWXU) == S_IRWXU; /* File has permissions RWX. */
 }
