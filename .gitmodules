@@ -1,3 +1,6 @@
 [submodule "raylib"]
-	path = subprojects/raylib
+	path = modules/raylib
 	url = https://github.com/raysan5/raylib
+[submodule "miniz"]
+	path = modules/miniz
+	url = https://github.com/richgel999/miniz
