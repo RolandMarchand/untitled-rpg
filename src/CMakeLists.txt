@@ -1,12 +1,15 @@
 set(RESOURCE ${CMAKE_BINARY_DIR}/resource.zip)
 
+# Game asset management library
 add_library(resource resource.c)
 target_link_libraries(resource PRIVATE miniz)
 target_compile_options(resource PRIVATE -Wall -Wextra)
 
+# Main executable
 add_executable(main main.c)
 target_link_libraries(main PRIVATE raylib resource)
 set_target_properties(main PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+# Enable warnings
 target_compile_options(main PRIVATE -Wall -Wextra)
 
 # Package the assets folder into a resource package for the game to access files
