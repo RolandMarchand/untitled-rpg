@@ -75,6 +75,7 @@ int CleanResourceCallback(const char *path, const struct stat *statbuf, int type
 	return 0; /* Continue traversal */
 }
 
+/* Cleanup all game assets from /tmp when the game is not running. */
 void CleanResource() {
 	if (access(UNPACKED_RESOURCE_PATH, F_OK) == 0) {
 		nftw(UNPACKED_RESOURCE_PATH, CleanResourceCallback, 64,
@@ -88,7 +89,7 @@ void SignalHandler(int sig) {
 	exit(sig);
 }
 
-ResourceError RegisterTmpDir(char *tmp)
+ResourceError RegisterTmpDir()
 {
 	CleanResource();
 
@@ -105,7 +106,7 @@ ResourceError RegisterTmpDir(char *tmp)
 
 	/* Register signal handling for resource cleanup. */
 	int signals[] = {SIGINT, SIGABRT, SIGTERM};
-	for (int i = 0; i < sizeof(signals) / sizeof(int); i++) {
+	for (size_t i = 0; i < sizeof(signals) / sizeof(int); i++) {
 		if (signal(signals[i], SignalHandler) == SIG_ERR) {
 			perror("Failed to register resource cleanup signal handler");
 			return ERR_LOADING_RESOURCES;
@@ -130,7 +131,7 @@ Resource ExtractResource(const char *archivePath) {
 	}
 
 	/* Register disk space to load resources. */
-	if (RegisterTmpDir(res.path) != ERR_OK) {
+	if (RegisterTmpDir() != ERR_OK) {
 		res.error = ERR_LOADING_RESOURCES;
 		res.path[0] = '\0';
 		return res;
@@ -138,7 +139,7 @@ Resource ExtractResource(const char *archivePath) {
 
 	/* Iterate over every file of the archive. */
 	int fileCount = mz_zip_reader_get_num_files(&zip);
-	char filePath[PATH_MAX];
+	char filePath[PATH_MAX + MZ_ZIP_MAX_ARCHIVE_FILENAME_SIZE];
 	for (int i = 0; i < fileCount; i++) {
 		mz_zip_archive_file_stat fileStat;
 		if (!mz_zip_reader_file_stat(&zip, i, &fileStat)) {
@@ -151,7 +152,7 @@ Resource ExtractResource(const char *archivePath) {
 			return res;
 		}
 
-		snprintf(filePath, PATH_MAX, "%s/%s", res.path, fileStat.m_filename);
+		snprintf(filePath, sizeof(filePath), "%s/%s", res.path, fileStat.m_filename);
 
 		if (mz_zip_reader_is_file_a_directory(&zip, i)) {
 			mkdir(filePath, S_IRWXU);
