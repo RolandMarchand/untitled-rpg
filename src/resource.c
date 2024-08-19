@@ -7,6 +7,7 @@
 #include <libgen.h>
 #include <errno.h>
 #include <signal.h>
+#include <assert.h>
 
 #include "resource.h"
 #include "miniz.c"
@@ -20,6 +21,8 @@
  * and print to stderr. */
 void GetExecPath(char *execPath)
 {
+	assert(execPath != NULL);
+
 	/* TODO: add support for non-Linux platforms. */
 	ssize_t len = readlink("/proc/self/exe", execPath, PATH_MAX - 1);
 
@@ -39,8 +42,12 @@ void GetExecPath(char *execPath)
  * PATH_MAX. In case of an error, set resourcePath to "", set errno and print to
  * stderr. */
 void GetResourcePath(char *resourcePath)
-{	char execPath[PATH_MAX];
+{
+	assert(resourcePath != NULL);
+
+	char execPath[PATH_MAX];
 	GetExecPath(execPath);
+
 	sprintf(resourcePath, "%s/%s", execPath, RESOURCE_FILENAME);
 }
 
@@ -68,7 +75,8 @@ int CleanResourceCallback(const char *path, const struct stat *statbuf, int type
 	}
 
 	if (result != 0) {
-		perror("Error: failed to delete " UNPACKED_RESOURCE_PATH);
+		fprintf(stderr, "Error: %s : failed to delete %s\n",
+			strerror(errno), path);
 		return -1; /* Abort traversal on error */
 	}
 
@@ -80,7 +88,6 @@ void CleanResource() {
 	if (access(UNPACKED_RESOURCE_PATH, F_OK) == 0) {
 		nftw(UNPACKED_RESOURCE_PATH, CleanResourceCallback, 64,
 		     FTW_DEPTH | FTW_PHYS);
-		rmdir(UNPACKED_RESOURCE_PATH);
 	}
 }
 
@@ -108,7 +115,8 @@ ResourceError RegisterTmpDir()
 	int signals[] = {SIGINT, SIGABRT, SIGTERM};
 	for (size_t i = 0; i < sizeof(signals) / sizeof(int); i++) {
 		if (signal(signals[i], SignalHandler) == SIG_ERR) {
-			perror("Failed to register resource cleanup signal handler");
+			fprintf(stderr, "Error: %s: Failed to register resource cleanup signal handler for signal %d\n",
+				strerror(errno), signals[i]);
 			return ERR_LOADING_RESOURCES;
 		}
 	}
@@ -118,6 +126,8 @@ ResourceError RegisterTmpDir()
 
 /* Extract a zip archive to a temporary directory and return a resource. */
 Resource ExtractResource(const char *archivePath) {
+	assert(archivePath != NULL);
+
 	mz_zip_archive zip = {0};
 	Resource res = {.error = ERR_OK, .path = UNPACKED_RESOURCE_PATH};
 
