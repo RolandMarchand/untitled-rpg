@@ -73,10 +73,10 @@ int CleanResourceCallback(const char *path, const struct stat *statbuf, int type
 
         if (result != 0) {
 		ERROR("%s: failed to delete %s\n", strerror(errno), path);
-                return -1; /* Abort traversal on error */
+                return -1; /* Abort traversal on error. */
         }
 
-        return 0; /* Continue traversal */
+        return 0; /* Continue traversal. */
 }
 
 /* Cleanup all game assets from /tmp when the game is not running. */
