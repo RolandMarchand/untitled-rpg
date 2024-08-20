@@ -1,6 +1,6 @@
+#include "map_parser.h"
 #include "map_scanner.h"
 #include "common.h"
-#include "string.h"
 
 int main() {
 	const char *source = "{"
@@ -21,19 +21,23 @@ int main() {
 		" \"classname\" \"info_player_start\""
 		" \"origin\" \"256 384 160\""
 		"}";
-	const Token expected_tokens[] = {
+	const yytoken_kind_t expected_tokens[] = {
 		'{', TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, '{', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', TOKEN_TEXTURE, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', TOKEN_TEXTURE, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', TOKEN_TEXTURE, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', TOKEN_TEXTURE, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', TOKEN_TEXTURE, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', '(', TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, ')', TOKEN_TEXTURE, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, TOKEN_NUMBER, '}', '}', '{', TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, TOKEN_STRING, '}'};
-const char *expected_lexemes[] = {
-	"{", "\"sounds\"", "\"1\"", "\"classname\"", "\"worldspawn\"", "\"wad\"", "\"/gfx/base.wad\"", "\"worldtype\"", "\"0\"", "{", "(", "-128", "0", "0", ")", "(", "128.2", "-1.0", "0", ")", "(", "128", "0", "1", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "256", "0", "0", ")", "(", "256", "0", "1", ")", "(", "256", "1", "0", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "128", "0", ")", "(", "0", "128", "1", ")", "(", "1", "128", "0", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "384", "0", ")", "(", "1", "384", "0", ")", "(", "0", "384", "1", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "0", "64", ")", "(", "1", "0", "64", ")", "(", "0", "1", "64", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "0", "128", ")", "(", "0", "1", "128", ")", "(", "1", "0", "128", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "}", "}", "{", "\"classname\"", "\"info_player_start\"", "\"origin\"", "\"256 384 160\"", "}"};
+	const char *expected_lexemes[] = {
+		"{", "\"sounds\"", "\"1\"", "\"classname\"", "\"worldspawn\"", "\"wad\"", "\"/gfx/base.wad\"", "\"worldtype\"", "\"0\"", "{", "(", "-128", "0", "0", ")", "(", "128.2", "-1.0", "0", ")", "(", "128", "0", "1", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "256", "0", "0", ")", "(", "256", "0", "1", ")", "(", "256", "1", "0", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "128", "0", ")", "(", "0", "128", "1", ")", "(", "1", "128", "0", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "384", "0", ")", "(", "1", "384", "0", ")", "(", "0", "384", "1", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "0", "64", ")", "(", "1", "0", "64", ")", "(", "0", "1", "64", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "(", "0", "0", "128", ")", "(", "0", "1", "128", ")", "(", "1", "0", "128", ")", "GROUND1_6", "0", "0", "0", "1.0", "1.0", "}", "}", "{", "\"classname\"", "\"info_player_start\"", "\"origin\"", "\"256 384 160\"", "}"};
+
+
+	int succeed = 0;
 
 	YY_BUFFER_STATE buf = yy_scan_string(source);
-	int succeed = 0;
-	Token tok = yylex();
-	size_t i = 0;
-	const size_t token_count = sizeof(expected_tokens) / sizeof(Token);
 
-	for (;i < token_count && tok != TOKEN_EOF; i++, tok = yylex()) {
-		if (tok == TOKEN_ERROR) {
+	yytoken_kind_t tok = yylex();
+
+	size_t i = 0;
+	const size_t tok_cnt = sizeof(expected_tokens) / sizeof(yytoken_kind_t);
+
+	for (;i < tok_cnt && tok != YYEOF; i++, tok = yylex()) {
+		if (tok == YYerror || tok == YYUNDEF) {
 			ERROR("token %lu: unknown token %s\n", i, yytext);
 			succeed = -1;
 		}
@@ -49,12 +53,12 @@ const char *expected_lexemes[] = {
 		}
 	}
 
-	if (tok != TOKEN_EOF) {
+	if (tok != 0) {
 		ERROR("didn't get EOF past end of input\n");
 		succeed = -1;
 	}
 
-	if (i < token_count) {
+	if (i < tok_cnt) {
 		ERROR("Received EOF early at token %lu: %s\n", i, yytext);
 		succeed = -1;
 	}
