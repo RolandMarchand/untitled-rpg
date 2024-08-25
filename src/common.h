@@ -9,14 +9,14 @@
 
 #define ERROR(...) fprintf(stderr, "Error: " __VA_ARGS__)
 
-#define ERROR_TO_STRING(err)						\
-	((char*[]){							\
-		[ERR_OK] = "Operation completed successfully",		\
-		[ERR_INVALID_ARGUMENT] = "Invalid argument provided",	\
-		[ERR_RESOURCE_NOT_FOUND] = "Resource not found",	\
-		[ERR_LOADING_RESOURCES] = "Error loading resources",	\
-		[ERR_OUT_OF_MEMORY] = "Out of memory",			\
-		[ERR_UNKNOWN] = "Unknown error occurred",		\
+#define ERROR_TO_STRING(err)                                          \
+	((char *[]){                                                  \
+		[ERR_OK] = "Operation completed successfully",        \
+		[ERR_INVALID_ARGUMENT] = "Invalid argument provided", \
+		[ERR_RESOURCE_NOT_FOUND] = "Resource not found",      \
+		[ERR_LOADING_RESOURCES] = "Error loading resources",  \
+		[ERR_OUT_OF_MEMORY] = "Out of memory",                \
+		[ERR_UNKNOWN] = "Unknown error occurred",             \
 	}[err])
 
 typedef enum {
@@ -27,4 +27,3 @@ typedef enum {
 	ERR_OUT_OF_MEMORY,
 	ERR_UNKNOWN,
 } Error;
-

@@ -36,7 +36,8 @@ void DictionaryFree(Dictionary *dict);
  * capacity includes space for the null terminator. Return the number of
  * characters written to 'out', not including the null terminator. If the key is
  * not found or if any arguments are invalid, the function returns -1. */
-int DictionaryGet(Dictionary *dict, const char *key, char *out, size_t capacity);
+int DictionaryGet(Dictionary *dict, const char *key, char *out,
+		  size_t capacity);
 
 /* Insert a new key-value pair into the dictionary, or updates an existing pair
  * if the key is already present. Return an error code if the operation cannot

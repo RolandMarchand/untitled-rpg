@@ -9,11 +9,11 @@
 
 bool IsDirectory(const char *path)
 {
-    DWORD attributes = GetFileAttributes(path);
-    if (attributes == INVALID_FILE_ATTRIBUTES) {
-        return false;
-    }
-    return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+	DWORD attributes = GetFileAttributes(path);
+	if (attributes == INVALID_FILE_ATTRIBUTES) {
+		return false;
+	}
+	return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
 #else
@@ -21,11 +21,11 @@ bool IsDirectory(const char *path)
 
 bool IsDirectory(const char *path)
 {
-    struct stat statbuf;
-    if (stat(path, &statbuf) != 0) {
-        return false;
-    }
-    return S_ISDIR(statbuf.st_mode);
+	struct stat statbuf;
+	if (stat(path, &statbuf) != 0) {
+		return false;
+	}
+	return S_ISDIR(statbuf.st_mode);
 }
 
 #endif
@@ -55,7 +55,5 @@ int GetResourcesPath(char *out, int capacity)
 		sprintf(out, "%s%s", path, RESOURCES_ROOT_DIR);
 	}
 
-	return IsDirectory(out)
-		? resourcePathLength
-		: -1;
+	return IsDirectory(out) ? resourcePathLength : -1;
 }
