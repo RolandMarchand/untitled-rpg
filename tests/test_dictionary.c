@@ -139,7 +139,7 @@ static void test_deletion() {
 
 static void test_stress_deletion() {
 	
-	Dictionary *dict = DictionaryInit(LARGE_DATASET_SIZE);
+	Dictionary *dict = DictionaryInit(0);
 	char key[32];
 	char value[32];
 
