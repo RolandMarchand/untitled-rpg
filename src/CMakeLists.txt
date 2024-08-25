@@ -3,10 +3,10 @@ set(RESOURCE ${CMAKE_BINARY_DIR}/resource.zip)
 # Game asset management library
 add_library(resource resource.c)
 target_link_libraries(resource PRIVATE whereami)
-target_compile_options(resource PRIVATE -Wall -Wextra)
+target_compile_options(resource PRIVATE -Wall -Wextra -Wpedantic)
 
 add_library(dictionary dictionary.c)
-target_compile_options(dictionary PRIVATE -Wall -Wextra)
+target_compile_options(dictionary PRIVATE -Wall -Wextra -Wpedantic)
 
 # First, generate the bison parser for .MAP files
 add_custom_target(generate_parser
@@ -65,11 +65,8 @@ target_compile_options(main PRIVATE -Wall -Wextra)
 
 # Package the assets folder into a resource package for the game to access files
 add_custom_target(archive_resources
-  # Error 12 means the resource is up to date, ignore
-  COMMAND zip -9ru ${RESOURCE} * > /dev/null || true
-  COMMAND test -e ${RESOURCE} || (echo "Error: failed to package resources into resource.zip" && false)
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/assets
-  COMMENT "Packaging resources"
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/resources
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 # Make the resource package cleanable
 set_target_properties(archive_resources PROPERTIES ADDITIONAL_CLEAN_FILES ${RESOURCE})
