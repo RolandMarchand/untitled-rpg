@@ -4,14 +4,12 @@
 #include <stdbool.h>
 #include "common.h"
 
-#define RESOURCES_ROOT_DIR "/resource"
-
-#define FONT_PATH RESOURCES_ROOT_DIR "/fonts"
-#define MODELS_PATH RESOURCES_ROOT_DIR "/models"
-#define MUSIC_PATH RESOURCES_ROOT_DIR "/music"
-#define SOUND_EFFECTS_PATH RESOURCES_ROOT_DIR "/sound-effects"
-#define TEXTURES_PATH RESOURCES_ROOT_DIR "/sprites/textures"
-#define ENTITIES_PATH RESOURCES_ROOT_DIR "/sprites/entities"
+#define ENTITIES_PATH "/sprites/entities"
+#define FONT_PATH "/fonts"
+#define MODELS_PATH "/models"
+#define MUSIC_PATH "/music"
+#define SOUND_EFFECTS_PATH "/sound-effects"
+#define TEXTURES_PATH "/sprites/textures"
 
 /* Retrieves the absolute path to RESOURCES_ROOT_DIR.
  *

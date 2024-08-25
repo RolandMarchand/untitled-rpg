@@ -4,6 +4,8 @@
 #include "resource.h"
 #include "whereami.h"
 
+#define RESOURCES_ROOT_DIR "/resources"
+
 #ifdef _WIN32
 #include <windows.h>
 
@@ -52,7 +54,7 @@ int GetResourcesPath(char *out, int capacity)
 			/* Unable to write path to output */
 			return -1;
 		}
-		sprintf(out, "%s%s", path, RESOURCES_ROOT_DIR);
+		snprintf(out, capacity, "%s%s", path, RESOURCES_ROOT_DIR);
 	}
 
 	return IsDirectory(out) ? resourcePathLength : -1;
