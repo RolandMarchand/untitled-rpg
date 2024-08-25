@@ -19,16 +19,9 @@ add_custom_target(generate_parser
 set_target_properties(generate_parser PROPERTIES ADDITIONAL_CLEAN_FILES
   "${CMAKE_BINARY_DIR}/src/map_parser.c;${CMAKE_BINARY_DIR}/src/map_parser.h"
 )
-# Run when generating build files
-execute_process(
-  COMMAND bison -Wall -H${CMAKE_BINARY_DIR}/src/map_parser.h
-  -o${CMAKE_BINARY_DIR}/src/map_parser.c ${CMAKE_SOURCE_DIR}/src/map_parser.y
-  COMMAND_ECHO STDOUT
-)
 
 # Use flex to generate scanner for .MAP files
-add_custom_target(
-  generate_scanner
+add_custom_target(generate_scanner
   ALL
   COMMAND flex -o ${CMAKE_BINARY_DIR}/src/map_scanner.c
   --header-file=${CMAKE_BINARY_DIR}/src/map_scanner.h
@@ -39,13 +32,6 @@ add_custom_target(
 set_target_properties(
   generate_scanner PROPERTIES ADDITIONAL_CLEAN_FILES
   "${CMAKE_BINARY_DIR}/src/map_scanner.c;${CMAKE_BINARY_DIR}/src/map_scanner.h"
-)
-# Run when generating build files
-execute_process(
-  COMMAND flex -o ${CMAKE_BINARY_DIR}/src/map_scanner.c
-  --header-file=${CMAKE_BINARY_DIR}/src/map_scanner.h
-  ${CMAKE_SOURCE_DIR}/src/map_scanner.l
-  COMMAND_ECHO STDOUT
 )
 
 # .MAP file parser
@@ -71,3 +57,26 @@ add_custom_target(archive_resources
 # Make the resource package cleanable
 set_target_properties(archive_resources PROPERTIES ADDITIONAL_CLEAN_FILES ${RESOURCE})
 add_dependencies(main archive_resources)
+
+
+execute_process(
+    COMMAND bison -Wall -H${CMAKE_BINARY_DIR}/src/map_parser.h -o${CMAKE_BINARY_DIR}/src/map_parser.c ${CMAKE_SOURCE_DIR}/src/map_parser.y
+    RESULT_VARIABLE bison_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(NOT bison_result EQUAL 0)
+    message(FATAL_ERROR "Parser generation failed: '${bison_result}'")
+else()
+    message(STATUS "Parser generated successfully.")
+endif()
+
+execute_process(
+    COMMAND flex -o ${CMAKE_BINARY_DIR}/src/map_scanner.c --header-file=${CMAKE_BINARY_DIR}/src/map_scanner.h ${CMAKE_SOURCE_DIR}/src/map_scanner.l
+    RESULT_VARIABLE flex_result
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(NOT flex_result EQUAL 0)
+    message(FATAL_ERROR "Scanner generation failed: '${flex_result}'")
+else()
+    message(STATUS "Scanner generated successfully.")
+endif()
