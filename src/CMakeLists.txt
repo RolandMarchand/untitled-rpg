@@ -2,11 +2,12 @@ set(RESOURCE ${CMAKE_BINARY_DIR}/resource.zip)
 
 # Game asset management library
 add_library(resource resource.c)
-target_link_libraries(resource PRIVATE miniz)
+target_link_libraries(resource PRIVATE whereami)
 target_compile_options(resource PRIVATE -Wall -Wextra)
 
 add_library(dictionary dictionary.c)
 target_compile_options(dictionary PRIVATE -Wall -Wextra)
+
 # First, generate the bison parser for .MAP files
 add_custom_target(generate_parser
   ALL

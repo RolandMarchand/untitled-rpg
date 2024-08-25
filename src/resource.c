@@ -1,203 +1,61 @@
-#define _XOPEN_SOURCE 500
+#include <stdbool.h>
+#include <string.h>
 
 #include "resource.h"
+#include "whereami.h"
 
-#include <assert.h>
-#include <errno.h>
-#include <ftw.h>
-#include <libgen.h>
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
+#ifdef _WIN32
+#include <windows.h>
 
-#include "common.h"
-#include "miniz.c"
-
-#define RESOURCE_FILENAME "resource.zip"
-
-/* Note: the game files are extracted to /tmp, which is often located in RAM.
- * In case the game files get too big, save them in ~/.cache through
- * $XDG_CACHE_DIR */
-
-/* TODO: complete the game's name. */
-
-/* Write the executable path to execPath. Expect execPath
- * to be of size PATH_MAX. In case of an error, set execPath to "", set errno
- * and print to stderr. */
-void GetExecPath(char *execPath)
+bool IsDirectory(const char *path)
 {
-	assert(execPath != NULL);
-
-	/* TODO: add support for non-Linux platforms. */
-	ssize_t len = readlink("/proc/self/exe", execPath, PATH_MAX - 1);
-
-	if (len == -1) {
-		ERROR("unable to get the executable's path: %s\n",
-		      strerror(errno));
-		execPath[0] = '\0';
-		return;
-	}
-
-	execPath[len] = '\0'; /* readlink() does not null terminate strings. */
-	dirname(execPath);
+    DWORD attributes = GetFileAttributes(path);
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    return (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
-/* Write the resource path to resourcePath. Expect resourcePath to be of size
- * PATH_MAX. In case of an error, set resourcePath to "", set errno and print
- * to stderr. */
-void GetResourcePath(char *resourcePath)
+#else
+#include <sys/stat.h>
+
+bool IsDirectory(const char *path)
 {
-	assert(resourcePath != NULL);
-
-	char execPath[PATH_MAX];
-	GetExecPath(execPath);
-
-	sprintf(resourcePath, "%s/%s", execPath, RESOURCE_FILENAME);
+    struct stat statbuf;
+    if (stat(path, &statbuf) != 0) {
+        return false;
+    }
+    return S_ISDIR(statbuf.st_mode);
 }
 
-int CleanResourceCallback(const char *path, const struct stat *statbuf,
-			  int typeflag, struct FTW *ftwbuf)
+#endif
+
+int GetResourcesPath(char *out, int capacity)
 {
-	int result;
-	(void)statbuf; /* Unused parameter. */
-	(void)ftwbuf; /* Unused parameter. */
-
-	switch (typeflag) {
-	case FTW_F:
-	case FTW_SL:
-	case FTW_SLN:
-		/* Delete regular files. */
-		result = unlink(path);
-		break;
-	case FTW_D:
-	case FTW_DP:
-		/* Delete directories (will only be empty directories). */
-		result = rmdir(path);
-		break;
-	default:
-		/* Unsupported file type. */
-		result = -1;
+	int execPathLength = wai_getExecutablePath(NULL, 0, NULL);
+	if (execPathLength <= 0) {
+		return -1;
 	}
 
-	if (result != 0) {
-		ERROR("%s: failed to delete %s\n", strerror(errno), path);
-		return -1; /* Abort traversal on error. */
-	}
+	/* Calling wai_getExecutablePath() twice due to issue 43:
+	 * https://github.com/gpakosz/whereami/issues/43. */
+	int execDirLength;
+	char path[execPathLength];
+	wai_getExecutablePath(path, execPathLength, &execDirLength);
+	path[execDirLength] = '\0';
 
-	return 0; /* Continue traversal. */
-}
+	int resourcePathLength = execDirLength + strlen(RESOURCES_ROOT_DIR);
 
-/* Cleanup all game assets from /tmp when the game is not running. */
-void CleanResource()
-{
-	if (access(RESOURCE_PATH, F_OK) == 0) {
-		nftw(RESOURCE_PATH, CleanResourceCallback, 64,
-		     FTW_DEPTH | FTW_PHYS);
-	}
-}
-
-void SignalHandler(int sig)
-{
-	CleanResource();
-	exit(sig);
-}
-
-Error RegisterTmpDir()
-{
-	CleanResource();
-
-	/* Create resource dir in /tmp. */
-	if (mkdir(RESOURCE_PATH, S_IRWXU) != 0) {
-		return ERR_LOADING_RESOURCES;
-	}
-
-	/* Register the function to be called on exit. */
-	if (atexit(CleanResource) != 0) {
-		perror("Failed to register exit handler for resource cleanup\n");
-		return ERR_LOADING_RESOURCES;
-	}
-
-	/* Register signal handling for resource cleanup. */
-	int signals[] = { SIGINT, SIGABRT, SIGTERM };
-	for (size_t i = 0; i < sizeof(signals) / sizeof(int); i++) {
-		if (signal(signals[i], SignalHandler) == SIG_ERR) {
-			ERROR("%s: failed to register resource cleanup signal handler for signal %d\n",
-			      strerror(errno), signals[i]);
-			return ERR_LOADING_RESOURCES;
+	/* Write to the output buffer. */
+	if (out != NULL) {
+		if (capacity < resourcePathLength + 1) {
+			/* Unable to write path to output */
+			return -1;
 		}
+		sprintf(out, "%s%s", path, RESOURCES_ROOT_DIR);
 	}
 
-	return ERR_OK;
-}
-
-/* Extract a zip archive to a temporary directory and return a resource. */
-Error ExtractResource(const char *archivePath)
-{
-	assert(archivePath != NULL);
-
-	mz_zip_archive zip = { 0 };
-
-	/* Initialize the archive reader. */
-	if (!mz_zip_reader_init_file(&zip, archivePath, 0)) {
-		ERROR("unable to open resource: %s\n", archivePath);
-		return ERR_LOADING_RESOURCES;
-	}
-
-	/* Register disk space to load resources. */
-	if (RegisterTmpDir() != ERR_OK) {
-		return ERR_LOADING_RESOURCES;
-	}
-
-	/* Iterate over every file of the archive. */
-	int fileCount = mz_zip_reader_get_num_files(&zip);
-	char filePath[PATH_MAX + MZ_ZIP_MAX_ARCHIVE_FILENAME_SIZE];
-	for (int i = 0; i < fileCount; i++) {
-		mz_zip_archive_file_stat fileStat;
-		if (!mz_zip_reader_file_stat(&zip, i, &fileStat)) {
-			ERROR("unable to open resource: %s\n", archivePath);
-			mz_zip_reader_end(&zip);
-			return ERR_LOADING_RESOURCES;
-		}
-
-		snprintf(filePath, sizeof(filePath), RESOURCE_PATH "/%s",
-			 fileStat.m_filename);
-
-		if (mz_zip_reader_is_file_a_directory(&zip, i)) {
-			mkdir(filePath, S_IRWXU);
-			continue;
-		}
-
-		if (!mz_zip_reader_extract_to_file(&zip, i, filePath, 0)) {
-			ERROR("failed to extract file %s\n",
-			      fileStat.m_filename);
-			mz_zip_reader_end(&zip);
-			return ERR_LOADING_RESOURCES;
-		}
-	}
-
-	mz_zip_reader_end(&zip);
-	return ERR_OK;
-}
-
-Error LoadResource()
-{
-	char resourcePath[PATH_MAX];
-	GetResourcePath(resourcePath);
-
-	if (resourcePath[0] == '\0') {
-		return ERR_RESOURCE_NOT_FOUND;
-	}
-
-	return ExtractResource(resourcePath);
-}
-
-bool IsResourceLoaded()
-{
-	struct stat statbuf;
-	/* File exists. */
-	return stat(RESOURCE_PATH, &statbuf) == 0
-	       /* File is a directory. */
-	       && S_ISDIR(statbuf.st_mode)
-	       /* File has permissions RWX. */
-	       && (statbuf.st_mode & S_IRWXU) == S_IRWXU;
+	return IsDirectory(out)
+		? resourcePathLength
+		: -1;
 }
