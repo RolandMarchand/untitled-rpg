@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "resource.h"
+#include "resources.h"
 #include "whereami.h"
 
 #define RESOURCES_ROOT_DIR "/resources"

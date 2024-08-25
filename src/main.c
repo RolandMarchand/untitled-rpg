@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "raylib.h"
-#include "resource.h"
+#include "resources.h"
 
 //------------------------------------------------------------------------------------
 // Program main entry point

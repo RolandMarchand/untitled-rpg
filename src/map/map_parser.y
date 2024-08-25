@@ -4,10 +4,6 @@
 
 #include "map_scanner.h"
 
-struct {
-	
-} map;
-
 void yyerror(const char *s);
 %}
 
