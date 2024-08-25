@@ -6,7 +6,7 @@ target_compile_options(dictionary PRIVATE -Wall -Wextra -Wpedantic)
 # Main executable
 add_executable(main main.c resources.c)
 add_dependencies(main archive_resources)
-target_link_libraries(main PRIVATE raylib dictionary)
+target_link_libraries(main PRIVATE raylib dictionary whereami)
 set_target_properties(main
   PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 target_compile_options(main PRIVATE -Wall -Wextra) # Enable warnings

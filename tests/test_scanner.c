@@ -1,5 +1,5 @@
-#include "map_parser.h"
-#include "map_scanner.h"
+#include "map/map_parser.h"
+#include "map/map_scanner.h"
 #include "common.h"
 
 int main() {
