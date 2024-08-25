@@ -494,18 +494,11 @@ char *yytext;
 void yyerror(const char *s);
 
 #line 496 "map_scanner.c"
+#define YY_NO_UNISTD_H 1
 /* Definitions */
-#line 498 "map_scanner.c"
+#line 499 "map_scanner.c"
 
 #define INITIAL 0
-
-#ifndef YY_NO_UNISTD_H
-/* Special case for "unistd.h", since it is non-ANSI. We include it way
- * down here because we want the user's section 1 to have been scanned first.
- * The user has a chance to override it with an option.
- */
-#include <unistd.h>
-#endif
 
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
@@ -715,7 +708,7 @@ YY_DECL
 #line 23 "map_scanner.l"
 
 
-#line 718 "map_scanner.c"
+#line 711 "map_scanner.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -843,7 +836,7 @@ YY_RULE_SETUP
 #line 37 "map_scanner.l"
 ECHO;
 	YY_BREAK
-#line 846 "map_scanner.c"
+#line 839 "map_scanner.c"
 
 	case YY_END_OF_BUFFER:
 		{

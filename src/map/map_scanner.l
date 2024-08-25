@@ -11,7 +11,7 @@ void yyerror(const char *s);
 
 %}
 
-%option noyywrap yylineno
+%option noyywrap yylineno nounistd
 
 /* Definitions */
 DIGIT   [0-9]

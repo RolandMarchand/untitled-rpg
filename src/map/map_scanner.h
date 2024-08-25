@@ -219,14 +219,6 @@ extern char *yytext;
 
 #endif
 
-#ifndef YY_NO_UNISTD_H
-/* Special case for "unistd.h", since it is non-ANSI. We include it way
- * down here because we want the user's section 1 to have been scanned first.
- * The user has a chance to override it with an option.
- */
-#include <unistd.h>
-#endif
-
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
 #endif
@@ -472,6 +464,6 @@ extern int yylex (void);
 #line 37 "map_scanner.l"
 
 
-#line 475 "map_scanner.h"
+#line 467 "map_scanner.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */
