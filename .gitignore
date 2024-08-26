@@ -53,3 +53,7 @@ dkms.conf
 
 /build
 /.cache
+
+# VSCode
+/out
+.vs/
