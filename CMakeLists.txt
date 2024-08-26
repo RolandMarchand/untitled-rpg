@@ -15,7 +15,7 @@ enable_testing()
 
 add_subdirectory(modules)
 add_subdirectory(src)
-add_subdirectory(tests EXCLUDE_FROM_ALL)
+add_subdirectory(tests)
 
 find_program(CLANG_FORMAT "clang-format")
 if(CLANG_FORMAT)

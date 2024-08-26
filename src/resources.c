@@ -32,7 +32,7 @@ bool IsDirectory(const char *path)
 
 #endif
 
-int GetResourcesPath(char *out, int capacity)
+int GetResourcesPath(char *out, size_t capacity)
 {
 	int execPathLength = wai_getExecutablePath(NULL, 0, NULL);
 	if (execPathLength <= 0) {
@@ -41,21 +41,30 @@ int GetResourcesPath(char *out, int capacity)
 
 	/* Calling wai_getExecutablePath() twice due to issue 43:
 	 * https://github.com/gpakosz/whereami/issues/43. */
-	int execDirLength;
-	char path[execPathLength];
-	wai_getExecutablePath(path, execPathLength, &execDirLength);
-	path[execDirLength] = '\0';
-
-	int resourcePathLength = execDirLength + strlen(RESOURCES_ROOT_DIR);
-
-	/* Write to the output buffer. */
-	if (out != NULL) {
-		if (capacity < resourcePathLength + 1) {
-			/* Unable to write path to output */
-			return -1;
-		}
-		snprintf(out, capacity, "%s%s", path, RESOURCES_ROOT_DIR);
+	char *execDirPath = (char*)malloc(execPathLength + 1);
+	if (execDirPath == NULL) {
+		perror("Unable to allocate memory to get the resources path");
+		return -1;
 	}
 
-	return IsDirectory(out) ? resourcePathLength : -1;
+	int execDirLength;
+	wai_getExecutablePath(execDirPath, execPathLength, &execDirLength);
+	execDirPath[execDirLength] = '\0';
+
+	size_t resourcePathLength = execDirLength + strlen(RESOURCES_ROOT_DIR);
+
+	if (out == NULL) {
+		return (int)resourcePathLength;
+	}
+
+	/* Write to the output buffer. */
+	if (capacity < resourcePathLength + 1) {
+		/* Unable to write path to output */
+		free(execDirPath);
+		return -1;
+	}
+	snprintf(out, capacity, "%s%s", execDirPath,
+			RESOURCES_ROOT_DIR);
+	free(execDirPath);
+	return IsDirectory(out) ? (int)resourcePathLength : -1;
 }

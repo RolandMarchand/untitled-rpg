@@ -17,11 +17,12 @@ if (BISON_FOUND AND FLEX_FOUND)
 
   # Use flex to generate scanner for .MAP files
   add_custom_target(generate_scanner
-    COMMAND flex -o map_scanner.c --header-file=map_scanner.h map_scanner.l
+    COMMAND flex -lX --nounistd -o map_scanner.c --header-file=map_scanner.h
+    map_scanner.l
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating scanner")
 else()
-  message(STATUS "Parser generator tools were not")
+  message(STATUS "Parser generator tools were not found")
 endif()
 
 # .MAP file parser

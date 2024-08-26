@@ -27,20 +27,38 @@ int main(void)
 	camera.fovy = 70.0f; // Camera field-of-view Y
 	camera.projection = CAMERA_PERSPECTIVE; // Camera projection type
 
-	char resourcesDir[PATH_MAX];
-	int len = GetResourcesPath(resourcesDir, PATH_MAX);
-	if (len <= 0) {
-		ERROR("Unable to get resources.\n");
+	int resourcesPathLength = GetResourcesPath(NULL, 0);
+	if (resourcesPathLength <= 0) {
+		PRINT_ERR("Unable to get resources.\n");
+		abort();
+	}
+	char *resourcesPath = (char *)malloc(resourcesPathLength + 1);
+	if (resourcesPath == NULL) {
+		perror("Unable to allocate memory for the resources path.");
 		abort();
 	}
 
-	char modelPath[PATH_MAX + len];
-	snprintf(modelPath, PATH_MAX + len, "%s" MODELS_PATH "/simple.obj",
-		 resourcesDir);
+	GetResourcesPath(resourcesPath, resourcesPathLength + 1);
+
+	char *modelFilename = MODELS_PATH "/simple.obj";
+	size_t modelPathLength = resourcesPathLength + strlen(modelFilename);
+	char *modelPath = (char *)malloc(modelPathLength + 1);
+	if (modelPath == NULL) {
+		perror("Unable to allocate memory for the resources model path.");
+		abort();
+	}
+	snprintf(modelPath, modelPathLength + 1, "%s%s", resourcesPath, modelFilename);
+	free(resourcesPath);
+
+	for (size_t i = 0; i < strlen(modelPath); i++) {
+		if (modelPath[i] == '/') {
+			modelPath[i] = '\\';
+		}
+	}
 
 	Model model = LoadModel(modelPath);
+	free(modelPath);
 	Vector3 position = { 0.0f, 0.0f, 0.0f }; // Set model position
-
 	SetTargetFPS(60); // Set our game to run at 60 frames-per-second
 	//--------------------------------------------------------------------------------------
 

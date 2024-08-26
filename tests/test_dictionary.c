@@ -10,7 +10,7 @@
 #define ASSERT(...)					\
 	do {						\
 		fprintf(stderr, "%d: ", __LINE__);	\
-		ERROR(__VA_ARGS__);			\
+		PRINT_ERR(__VA_ARGS__);			\
 		succeed = -1;				\
 	} while (0)
 

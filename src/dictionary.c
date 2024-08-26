@@ -1,5 +1,3 @@
-#include <string.h>
-#include <time.h>
 #include "dictionary.h"
 
 #define DICTIONARY_MAX_LOAD 0.75
@@ -14,12 +12,12 @@ typedef enum {
 struct Entry {
 	char *key;
 	char *value;
-	uint32_t hash;
+	uint64_t hash;
 	EntryState state;
 };
 
 static Error DictionaryIncreaseSize(Dictionary *dict);
-static uint64_t Murmur3Hash(const void *key, int len, uint32_t seed);
+static uint64_t Murmur3Hash(const void *key, size_t len, uint32_t seed);
 
 Dictionary *DictionaryInit(size_t size)
 {
@@ -40,6 +38,13 @@ Dictionary *DictionaryInit(size_t size)
 		return NULL;
 	}
 
+	/* Prevent freeing unallocated memory. */
+	for (size_t i = 0; i < size; i++) {
+		map->entries[i].key = NULL;
+		map->entries[i].value = NULL;
+		map->entries[i].state = ENTRY_STATE_EMPTY;
+	}
+
 	map->count = 0;
 	map->size = size;
 	map->seed = (uint32_t)rand();
@@ -54,8 +59,10 @@ void DictionaryFree(Dictionary *dict)
 
 	for (size_t i = 0; i < dict->size; i++) {
 		if (dict->entries[i].state == ENTRY_STATE_FILLED) {
-			free(dict->entries[i].key);
-			free(dict->entries[i].value);
+			void *key = dict->entries[i].key;
+			void *value = dict->entries[i].value;
+			free(key);
+			free(value);
 		}
 	}
 
@@ -69,8 +76,8 @@ int DictionaryGet(Dictionary *dict, const char *key, char *out, size_t capacity)
 		return -1;
 	}
 
-	uint32_t hash = Murmur3Hash(key, strlen(key), dict->seed);
-	uint32_t idx = hash % dict->size;
+	uint64_t hash = Murmur3Hash(key, strlen(key), dict->seed);
+	uint64_t idx = hash % dict->size;
 	for (size_t i = 0; i < dict->size; i++) {
 		switch (dict->entries[idx].state) {
 		case ENTRY_STATE_EMPTY:
@@ -102,8 +109,8 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value)
 		return ERR_INVALID_ARGUMENT;
 	}
 
-	uint32_t hash = Murmur3Hash(key, strlen(key), dict->seed);
-	uint32_t idx = hash % dict->size;
+	uint64_t hash = Murmur3Hash(key, strlen(key), dict->seed);
+	uint64_t idx = hash % dict->size;
 	for (size_t i = 0; i < dict->size; i++) {
 		switch (dict->entries[idx].state) {
 		case ENTRY_STATE_ZOMBIE:
@@ -142,8 +149,8 @@ Error DictionaryErase(Dictionary *dict, const char *key)
 		return ERR_INVALID_ARGUMENT;
 	}
 
-	uint32_t hash = Murmur3Hash(key, strlen(key), dict->seed);
-	uint32_t idx = hash % dict->size;
+	uint64_t hash = Murmur3Hash(key, strlen(key), dict->seed);
+	uint64_t idx = hash % dict->size;
 	for (size_t i = 0; i < dict->size; i++) {
 		switch (dict->entries[idx].state) {
 		case ENTRY_STATE_EMPTY:
@@ -184,7 +191,7 @@ Error DictionaryIncreaseSize(Dictionary *dict)
 			continue;
 		}
 
-		uint32_t bigIdx = dict->entries[i].hash % bigDict->size;
+		uint64_t bigIdx = dict->entries[i].hash % bigDict->size;
 		size_t bigIter = 0;
 		while (bigDict->entries[bigIdx].state == ENTRY_STATE_FILLED &&
 		       likely(bigIter < bigDict->size)) {
@@ -227,11 +234,11 @@ static uint64_t fmix(uint64_t k)
 	return k;
 }
 
-uint64_t Murmur3Hash(const void *key, int len, uint32_t seed)
+uint64_t Murmur3Hash(const void *key, size_t len, uint32_t seed)
 {
 	const uint8_t *data = (const uint8_t *)key;
-	const int nblocks = len / 16;
-	int i;
+	const size_t nblocks = len / 16;
+	size_t i;
 
 	uint64_t h1 = seed;
 	uint64_t h2 = seed;

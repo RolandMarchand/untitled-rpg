@@ -23,4 +23,4 @@
  * If the path cannot be located or if any argument is invalid, the function
  * returns -1.
  */
-int GetResourcesPath(char *out, int capacity);
+int GetResourcesPath(char *out, size_t capacity);

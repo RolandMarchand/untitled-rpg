@@ -38,28 +38,28 @@ int main() {
 
 	for (;i < tok_cnt && tok != YYEOF; i++, tok = yylex()) {
 		if (tok == YYerror || tok == YYUNDEF) {
-			ERROR("token %lu: unknown token %s\n", i, yytext);
+			PRINT_ERR("token %lu: unknown token %s\n", i, yytext);
 			succeed = -1;
 		}
 		if (expected_tokens[i] != tok) {
-			ERROR("token %lu: expected token %d, got %d\n",
+			PRINT_ERR("token %lu: expected token %d, got %d\n",
 			      i, expected_tokens[i], tok);
 			succeed = -1;
 		}
 		if (strcmp(expected_lexemes[i], yytext) != 0) {
-			ERROR("token %lu: expected lexeme %s, got %s\n",
+			PRINT_ERR("token %lu: expected lexeme %s, got %s\n",
 			      i, expected_lexemes[i], yytext);
 			succeed = -1;
 		}
 	}
 
 	if (tok != 0) {
-		ERROR("didn't get EOF past end of input\n");
+		PRINT_ERR("didn't get EOF past end of input\n");
 		succeed = -1;
 	}
 
 	if (i < tok_cnt) {
-		ERROR("Received EOF early at token %lu: %s\n", i, yytext);
+		PRINT_ERR("Received EOF early at token %lu: %s\n", i, yytext);
 		succeed = -1;
 	}
 

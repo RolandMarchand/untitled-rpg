@@ -206,13 +206,10 @@ void yyfree ( void *  );
 #define yywrap() (/*CONSTCOND*/1)
 #define YY_SKIP_YYWRAP
 
+#define YY_FLEX_LEX_COMPAT
 extern int yylineno;
 
-extern char *yytext;
-#ifdef yytext_ptr
-#undef yytext_ptr
-#endif
-#define yytext_ptr yytext
+extern char yytext[];
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
@@ -464,6 +461,6 @@ extern int yylex (void);
 #line 37 "map_scanner.l"
 
 
-#line 467 "map_scanner.h"
+#line 464 "map_scanner.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */
