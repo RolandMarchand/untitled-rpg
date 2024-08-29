@@ -17,9 +17,9 @@ struct Entry {
 };
 
 static Error DictionaryIncreaseSize(Dictionary *dict);
-static uint64_t Murmur3Hash(const void *key, size_t len, uint32_t seed);
+static uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed);
 
-Dictionary *DictionaryInit(size_t size)
+Dictionary *DictionaryInit(size_t capacity)
 {
 	Dictionary *map = malloc(sizeof(Dictionary));
 	if (map == NULL) {
@@ -27,27 +27,20 @@ Dictionary *DictionaryInit(size_t size)
 		return NULL;
 	}
 
-	if (size == 0) {
-		size = DICTIONARY_DEFAULT_SIZE;
+	if (capacity == 0) {
+		capacity = DICTIONARY_DEFAULT_CAPACITY;
 	}
 
-	map->entries = calloc(size, sizeof(Entry));
+	map->entries = calloc(capacity, sizeof(Entry));
 	if (map->entries == NULL) {
 		perror("Failed to allocate dictionary.");
 		free(map);
 		return NULL;
 	}
 
-	/* Prevent freeing unallocated memory. */
-	for (size_t i = 0; i < size; i++) {
-		map->entries[i].key = NULL;
-		map->entries[i].value = NULL;
-		map->entries[i].state = ENTRY_STATE_EMPTY;
-	}
-
 	map->count = 0;
-	map->size = size;
-	map->seed = (uint32_t)rand();
+	map->capacity = capacity;
+	map->seed = (uint64_t)rand();
 	return map;
 }
 
@@ -57,17 +50,51 @@ void DictionaryFree(Dictionary *dict)
 		return;
 	}
 
-	for (size_t i = 0; i < dict->size; i++) {
+	for (size_t i = 0; i < dict->capacity; i++) {
 		if (dict->entries[i].state == ENTRY_STATE_FILLED) {
-			void *key = dict->entries[i].key;
-			void *value = dict->entries[i].value;
-			free(key);
-			free(value);
+			free(dict->entries[i].key);
+			free(dict->entries[i].value);
 		}
 	}
 
 	free(dict->entries);
 	free(dict);
+}
+
+Dictionary *DictionaryDuplicate(const Dictionary *dict)
+{
+	Dictionary *ret = malloc(sizeof(Dictionary));
+	if (ret == NULL) {
+		return NULL;
+	}
+
+	ret->count = dict->count;
+	ret->capacity = dict->capacity;
+	ret->seed = dict->seed;
+	ret->entries = calloc(ret->capacity, sizeof(Entry));
+	if (ret->entries == NULL) {
+		free(ret);
+		return NULL;
+	}
+
+	for (size_t i = 0; i < ret->capacity; i++) {
+		ret->entries[i].hash = dict->entries[i].hash;
+		ret->entries[i].state = dict->entries[i].state;
+
+		if (ret->entries[i].state != ENTRY_STATE_FILLED) {
+			continue;
+		}
+
+		ret->entries[i].key = strdup(dict->entries[i].key);
+		ret->entries[i].value = strdup(dict->entries[i].value);
+
+		if (ret->entries[i].key == NULL
+		    || ret->entries[i].value == NULL) {
+			DictionaryFree(ret);
+			return NULL;
+		}
+	}
+	return ret;
 }
 
 int DictionaryGet(Dictionary *dict, const char *key, char *out, size_t capacity)
@@ -77,8 +104,8 @@ int DictionaryGet(Dictionary *dict, const char *key, char *out, size_t capacity)
 	}
 
 	uint64_t hash = Murmur3Hash(key, strlen(key), dict->seed);
-	uint64_t idx = hash % dict->size;
-	for (size_t i = 0; i < dict->size; i++) {
+	uint64_t idx = hash % dict->capacity;
+	for (size_t i = 0; i < dict->capacity; i++) {
 		switch (dict->entries[idx].state) {
 		case ENTRY_STATE_EMPTY:
 			if (capacity > 0) {
@@ -95,7 +122,7 @@ int DictionaryGet(Dictionary *dict, const char *key, char *out, size_t capacity)
 
 			/* fall-through */
 		case ENTRY_STATE_ZOMBIE:
-			idx = (idx + 1) % dict->size;
+			idx = (idx + 1) % dict->capacity;
 		}
 	}
 
@@ -110,8 +137,8 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value)
 	}
 
 	uint64_t hash = Murmur3Hash(key, strlen(key), dict->seed);
-	uint64_t idx = hash % dict->size;
-	for (size_t i = 0; i < dict->size; i++) {
+	uint64_t idx = hash % dict->capacity;
+	for (size_t i = 0; i < dict->capacity; i++) {
 		switch (dict->entries[idx].state) {
 		case ENTRY_STATE_ZOMBIE:
 		case ENTRY_STATE_EMPTY:
@@ -120,7 +147,7 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value)
 			dict->entries[idx].hash = hash;
 			dict->entries[idx].state = ENTRY_STATE_FILLED;
 			dict->count++;
-			if (dict->count > dict->size * DICTIONARY_MAX_LOAD) {
+			if (dict->count > dict->capacity * DICTIONARY_MAX_LOAD) {
 				Error err = DictionaryIncreaseSize(dict);
 				if (err != ERR_OK) {
 					return err;
@@ -136,7 +163,7 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value)
 				return ERR_OK;
 			}
 		}
-		idx = (idx + 1) % dict->size;
+		idx = (idx + 1) % dict->capacity;
 	}
 
 	/* The dictionary is full because it cannot expand further. Unlikely. */
@@ -150,8 +177,8 @@ Error DictionaryErase(Dictionary *dict, const char *key)
 	}
 
 	uint64_t hash = Murmur3Hash(key, strlen(key), dict->seed);
-	uint64_t idx = hash % dict->size;
-	for (size_t i = 0; i < dict->size; i++) {
+	uint64_t idx = hash % dict->capacity;
+	for (size_t i = 0; i < dict->capacity; i++) {
 		switch (dict->entries[idx].state) {
 		case ENTRY_STATE_EMPTY:
 			return ERR_OK;
@@ -168,7 +195,7 @@ Error DictionaryErase(Dictionary *dict, const char *key)
 			/* fall-through */
 
 		case ENTRY_STATE_ZOMBIE:
-			idx = (idx + 1) % dict->size;
+			idx = (idx + 1) % dict->capacity;
 		}
 	}
 
@@ -187,7 +214,7 @@ Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity)
 		return ERR_INSUFFICIENT_SPACE;
 	}
 
-	for (size_t i = 0; i < dict->size; i++) {
+	for (size_t i = 0; i < dict->capacity; i++) {
 		if (dict->entries[i].state != ENTRY_STATE_FILLED) {
 			continue;
 		}
@@ -200,27 +227,27 @@ Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity)
 Error DictionaryIncreaseSize(Dictionary *dict)
 {
 	Dictionary *bigDict =
-		DictionaryInit(dict->size * DICTIONARY_MAGNITUDE_INCREASE);
+		DictionaryInit(dict->capacity * DICTIONARY_MAGNITUDE_INCREASE);
 	if (bigDict == NULL) {
 		return ERR_OUT_OF_MEMORY;
 	}
 
 	bigDict->seed = dict->seed;
 
-	for (size_t i = 0; i < dict->size; i++) {
+	for (size_t i = 0; i < dict->capacity; i++) {
 		if (dict->entries[i].state != ENTRY_STATE_FILLED) {
 			continue;
 		}
 
-		uint64_t bigIdx = dict->entries[i].hash % bigDict->size;
+		uint64_t bigIdx = dict->entries[i].hash % bigDict->capacity;
 		size_t bigIter = 0;
 		while (bigDict->entries[bigIdx].state == ENTRY_STATE_FILLED &&
-		       likely(bigIter < bigDict->size)) {
-			bigIdx = (bigIdx + 1) % bigDict->size;
+		       likely(bigIter < bigDict->capacity)) {
+			bigIdx = (bigIdx + 1) % bigDict->capacity;
 			bigIter++;
 		}
 
-		if (unlikely(bigIter >= bigDict->size)) {
+		if (unlikely(bigIter >= bigDict->capacity)) {
 			perror("Error while increasing size of dictionary.");
 			return ERR_UNKNOWN;
 		}
@@ -255,7 +282,7 @@ static uint64_t fmix(uint64_t k)
 	return k;
 }
 
-uint64_t Murmur3Hash(const void *key, size_t len, uint32_t seed)
+uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 {
 	const uint8_t *data = (const uint8_t *)key;
 	const size_t nblocks = len / 16;

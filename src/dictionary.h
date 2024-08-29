@@ -2,29 +2,29 @@
 
 #include "common.h"
 
-#define DICTIONARY_DEFAULT_SIZE 32
+#define DICTIONARY_DEFAULT_CAPACITY 32
 
 typedef struct Entry Entry;
 
 /* String to String implementation of a dictionary/hashmap. This implementation
  * is not thread safe. */
-typedef struct {
+typedef struct Dictionary {
 	/* Dynamic array of Key-value pairs. NULL indicates that the dictionary
 	 * has been freed. */
 	Entry *entries;
 	/* Current count of entries. */
 	size_t count;
 	/* Total capacity of entries. */
-	size_t size;
+	size_t capacity;
 	/* Random seed for the hashing function. */
-	uint32_t seed;
+	uint64_t seed;
 } Dictionary;
 
-/* Initialize a dictionary with the given size. The 'size' parameter specifies
- * the initial number of slots for the dictionary. A size of 0 defaults to
- * DICTIONARY_DEFAULT_SIZE. Return a pointer to the newly created dictionary, or
- * NULL if memory allocation fails. */
-Dictionary *DictionaryInit(size_t size);
+/* Initialize a dictionary with the given capacity. The 'capacity' parameter
+ * specifies the initial number of slots for the dictionary. A capacity of 0
+ * defaults to DICTIONARY_DEFAULT_CAPCITY. Return a pointer to the newly created
+ * dictionary, or NULL if memory allocation fails. */
+Dictionary *DictionaryInit(size_t capacity);
 
 /* Free the memory allocated for the dictionary. The dictionary must have been
  * previously initialized. */
@@ -57,3 +57,9 @@ Error DictionaryErase(Dictionary *dict, const char *key);
  * 'out' OR 'dict' is NULL, ERR_NULL_REFERENCE is returned. Return ERR_OK upon
  * successful execution. */
 Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity);
+
+
+/* Return a deep copy of the dictionary given in 'dict'. The new dictionary is
+ * independent of the original, and modifications to one will not affect the
+ * other. Return NULL in case of an allocation error. */
+Dictionary *DictionaryDuplicate(const Dictionary *dict);

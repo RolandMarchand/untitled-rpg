@@ -14,7 +14,7 @@
 
 int succeed = 0;
 
-static void test_initialization()
+static void TestInitialization()
 {
 	
 	Dictionary *dict = DictionaryInit(0);
@@ -22,24 +22,23 @@ static void test_initialization()
 	ASSERT(dict != NULL, "Unable to instance a dictionary.\n");
 
 	/* Test initializing with default size. */
-	ASSERT(dict->size == DICTIONARY_DEFAULT_SIZE,
+	ASSERT(dict->capacity == DICTIONARY_DEFAULT_CAPACITY,
 	       "Wrong default size for new dictionaries. Expected %d, got %lu.\n",
-	       DICTIONARY_DEFAULT_SIZE, dict->size);
+	       DICTIONARY_DEFAULT_CAPACITY, dict->capacity);
 	DictionaryFree(dict);
 
 	for (int i = 0; i < 1000; i++) {
 		size_t size = rand() % LARGE_DATASET_SIZE;
 		dict = DictionaryInit(size);
-		ASSERT(dict->size == size,
+		ASSERT(dict->capacity == size,
 		       "Wrong default size for new dictionaries. Expected %d, got %lu.\n",
-		       DICTIONARY_DEFAULT_SIZE, dict->size);
+		       DICTIONARY_DEFAULT_CAPACITY, dict->capacity);
 		DictionaryFree(dict);
 	}
 }
 
-static void test_insertion()
+static void TestInsertion()
 {
-	
 	char buf[MAX];
 	Dictionary *dict = DictionaryInit(0);
 
@@ -64,7 +63,7 @@ static void test_insertion()
 	DictionaryFree(dict);
 }
 
-static void test_large_dataset()
+static void TestLargeDataset()
 {
 	
 	Dictionary *dict = DictionaryInit(0);
@@ -101,7 +100,7 @@ static void test_large_dataset()
 	DictionaryFree(dict);
 }
 
-static void test_deletion()
+static void TestDeletion()
 {
 	
 	Dictionary *dict = DictionaryInit(0);
@@ -123,7 +122,7 @@ static void test_deletion()
 	DictionaryFree(dict);
 }
 
-static void test_stress_deletion()
+static void TestStressDeletion()
 {
 	
 	Dictionary *dict = DictionaryInit(0);
@@ -176,14 +175,14 @@ static void test_stress_deletion()
 	DictionaryFree(dict);
 }
 
-static int compare_strings(const void *a, const void *b)
+static int CompareStrings(const void *a, const void *b)
 {
 	const char *str1 = *(char **)a;
 	const char *str2 = *(char **)b;
 	return strcmp(str1, str2);
 }
 
-static void test_getting_all_keys()
+static void TestGettingAllKeys()
 {
 	Dictionary *dict = DictionaryInit(0);
 	char key[32];
@@ -211,7 +210,7 @@ static void test_getting_all_keys()
 	       ERROR_TO_STRING(err));
 
 	/* Sort to easily compare input with output. */
-	qsort(keys, dict->count, sizeof(char*), compare_strings);
+	qsort(keys, dict->count, sizeof(char*), CompareStrings);
 
 	for (size_t i = 0; i < dict->count; i++) {
 		snprintf(key, sizeof(key), "key%zu", i);
@@ -224,23 +223,74 @@ static void test_getting_all_keys()
 	DictionaryFree(dict);
 }
 
+static void TestDuplication()
+{
+	Dictionary *dict = DictionaryInit(0);
+	char key[32];
+	char value[32];
+
+	/* Fill dictionary with input. */
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "key%zu", i);
+		snprintf(value, sizeof(value), "value%zu", i);
+
+		Error err = DictionarySet(dict, key, value);
+		ASSERT(err == ERR_OK,
+		       "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+	}
+
+	ASSERT(dict->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict->count);
+
+	Dictionary *dictDup = DictionaryDuplicate(dict);
+
+	ASSERT(dictDup != NULL, "Unable to duplicate dictionary\n");
+
+	ASSERT(dictDup->count == dict->count,
+	       "Unexpected entry count in dictionary. Expected %zu, got %zu\n",
+	       dict->count, dictDup->count);
+	ASSERT(dictDup->capacity == dict->capacity,
+	       "Unexpected entry capacity in dictionary. Expected %zu, got %zu\n",
+	       dict->capacity, dictDup->capacity);
+	ASSERT(dictDup->seed == dict->seed,
+	       "Unexpected seed in dictionary. Expected %zu, got %zu\n",
+	       dict->seed, dictDup->seed);
+
+	char expectedValue[32];
+	char receivedValue[32];
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "key%zu", i);
+
+		int err1 = DictionaryGet(dict, key, expectedValue, 32);
+		int err2 = DictionaryGet(dictDup, key, receivedValue, 32);
+
+		ASSERT(err1 != -1,
+		       "Unable to retrieve value from original dictionary\n");
+		ASSERT(err2 != -1,
+		       "Unable to retrieve value from copied of dictionary\n");
+
+		ASSERT(strcmp(expectedValue, receivedValue) == 0,
+		       "Duplicated dictionary's data is not the same as the original.\n");
+	}
+
+	DictionaryFree(dict);
+	DictionaryFree(dictDup);
+}
+
 int main(void)
 {
-	test_initialization();
-	test_initialization();
-	test_initialization();
-	test_insertion();
-	test_insertion();
-	test_insertion();
-	test_large_dataset();
-	test_large_dataset();
-	test_large_dataset();
-	test_deletion();
-	test_deletion();
-	test_deletion();
-	test_stress_deletion();
-	test_stress_deletion();
-	test_stress_deletion();
+	TestInitialization();
+	TestInsertion();
+	TestLargeDataset();
+	TestLargeDataset();
+	TestLargeDataset();
+	TestDeletion();
+	TestStressDeletion();
+	TestStressDeletion();
+	TestStressDeletion();
+	TestDuplication();
 
 	return succeed;
 }
