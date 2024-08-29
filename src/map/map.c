@@ -203,7 +203,6 @@ Error MapAddEntity(Map *out, const Entity *toCopy)
 
 Error MapParse(Map **out, const char *in)
 {
-	
 	yyin = fopen(in, "r");
 	yyparse(out);
 
