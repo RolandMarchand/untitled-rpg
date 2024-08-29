@@ -72,11 +72,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "map.h"
 #include "map_scanner.h"
 
-void yyerror(const char *s);
+void yyerror(Map **map, const char *err);
 
-#line 80 "map_parser.c"
+#line 81 "map_parser.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -114,13 +115,13 @@ enum yysymbol_kind_t
   YYSYMBOL_7_ = 7,                         /* '}'  */
   YYSYMBOL_8_ = 8,                         /* '('  */
   YYSYMBOL_9_ = 9,                         /* ')'  */
-  YYSYMBOL_YYACCEPT = 10,                  /* $accept  */
-  YYSYMBOL_file = 11,                      /* file  */
-  YYSYMBOL_entity_block_list = 12,         /* entity_block_list  */
-  YYSYMBOL_entity_block = 13,              /* entity_block  */
-  YYSYMBOL_entity_attributes = 14,         /* entity_attributes  */
+  YYSYMBOL_10_ = 10,                       /* '['  */
+  YYSYMBOL_11_ = 11,                       /* ']'  */
+  YYSYMBOL_YYACCEPT = 12,                  /* $accept  */
+  YYSYMBOL_file = 13,                      /* file  */
+  YYSYMBOL_entity_list = 14,               /* entity_list  */
   YYSYMBOL_entity = 15,                    /* entity  */
-  YYSYMBOL_key_value = 16,                 /* key_value  */
+  YYSYMBOL_attributes = 16,                /* attributes  */
   YYSYMBOL_brush_block = 17,               /* brush_block  */
   YYSYMBOL_brush = 18,                     /* brush  */
   YYSYMBOL_face = 19                       /* face  */
@@ -449,18 +450,18 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  12
+#define YYFINAL  10
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   44
+#define YYLAST   69
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  10
+#define YYNTOKENS  12
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  10
+#define YYNNTS  8
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  18
+#define YYNRULES  17
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  47
+#define YYNSTATES  61
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   260
@@ -486,7 +487,7 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    10,     2,    11,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     6,     2,     7,     2,     2,     2,     2,
@@ -508,10 +509,10 @@ static const yytype_int8 yytranslate[] =
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int8 yyrline[] =
+static const yytype_uint8 yyrline[] =
 {
-       0,    24,    24,    25,    29,    30,    34,    35,    36,    37,
-      40,    44,    45,    48,    52,    53,    57,    58,    62
+       0,    42,    42,    43,    49,    55,    62,    66,    73,    76,
+      84,    89,    96,   102,   109,   114,   121,   146
 };
 #endif
 
@@ -528,9 +529,9 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "TOKEN_NUMBER",
-  "TOKEN_TEXTURE", "TOKEN_STRING", "'{'", "'}'", "'('", "')'", "$accept",
-  "file", "entity_block_list", "entity_block", "entity_attributes",
-  "entity", "key_value", "brush_block", "brush", "face", YY_NULLPTR
+  "TOKEN_TEXTURE", "TOKEN_STRING", "'{'", "'}'", "'('", "')'", "'['",
+  "']'", "$accept", "file", "entity_list", "entity", "attributes",
+  "brush_block", "brush", "face", YY_NULLPTR
 };
 
 static const char *
@@ -540,7 +541,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-6)
+#define YYPACT_NINF (-5)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -554,11 +555,13 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       7,    -5,    14,     7,    -6,    10,    -6,    -6,    -3,    11,
-      -6,    -1,    -6,    -6,    -6,     0,    -6,     3,    -6,    -6,
-      -6,    -6,    15,    -6,    -6,     4,    16,    -6,    17,     8,
-      13,    19,    20,    21,    18,    22,    23,    25,    26,    24,
-      27,    29,    31,    32,    33,    34,    -6
+      10,    -4,    17,    10,    -5,    13,    -5,    -5,    -1,     2,
+      -5,    -5,    -5,     3,    14,    -5,     6,    -5,    -5,    -5,
+      18,    -5,    -5,    -5,     7,    19,    -5,    20,    11,    16,
+      22,    23,    24,    21,    25,    26,    28,    29,    27,    30,
+      -3,    32,    34,    35,    36,    37,    38,    39,    40,    -5,
+      33,    41,    42,    43,    44,    45,    46,    47,    49,    50,
+      -5
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -566,23 +569,25 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       2,     0,     0,     3,     4,     0,    16,     9,     0,    10,
-      11,     0,     1,     5,    13,     0,     7,     0,    12,    16,
-       8,    14,     0,    17,     6,     0,     0,    15,     0,     0,
+       2,     0,     0,     3,     4,     0,    14,     9,     0,     0,
+       1,     5,    10,     0,     0,     7,     0,    14,     8,    12,
+       0,    15,    11,     6,     0,     0,    13,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    18
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    17,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      16
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -6,    -6,    -6,    35,    -6,    -6,    30,    36,     6,    -6
+      -5,    -5,    -5,    51,    -5,    48,    52,    -5
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,     3,     4,     8,     9,    10,    11,    15,    23
+       0,     2,     3,     4,     8,     9,    13,    21
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -590,45 +595,51 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       5,     6,     7,     6,    16,    19,    20,    21,    22,    19,
-      24,    27,    22,     1,    12,    14,     5,    30,    26,    28,
-      29,    31,    32,    33,    34,    25,    37,    35,    38,    39,
-      36,    41,    42,    40,    43,    44,    45,    46,    13,    18,
-       0,     0,     0,     0,    17
+      41,     5,     6,     7,    14,     6,    15,    42,    17,    18,
+      19,    20,    17,    23,    26,    20,     1,    10,    12,    22,
+      29,    25,    27,    28,    30,    31,    32,    33,     0,    36,
+      34,    37,    38,    35,    40,    43,    39,    44,    45,    46,
+      47,    48,    49,    50,    51,    53,    54,    55,    56,     0,
+      58,    52,    59,    60,    11,     0,    16,    57,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    24
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     6,     7,     6,     7,     6,     7,     7,     8,     6,
-       7,     7,     8,     6,     0,     5,     5,     9,     3,     3,
-       3,     8,     3,     3,     3,    19,     3,     9,     3,     3,
-       8,     4,     3,     9,     3,     3,     3,     3,     3,     9,
-      -1,    -1,    -1,    -1,     8
+       3,     5,     6,     7,     5,     6,     7,    10,     6,     7,
+       7,     8,     6,     7,     7,     8,     6,     0,     5,     5,
+       9,     3,     3,     3,     8,     3,     3,     3,    -1,     3,
+       9,     3,     3,     8,     4,     3,     9,     3,     3,     3,
+       3,     3,     3,     3,    11,     3,     3,     3,     3,    -1,
+       3,    10,     3,     3,     3,    -1,     8,    11,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    17
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     6,    11,    12,    13,     5,     6,     7,    14,    15,
-      16,    17,     0,    13,     5,    18,     7,    17,    16,     6,
-       7,     7,     8,    19,     7,    18,     3,     7,     3,     3,
-       9,     8,     3,     3,     3,     9,     8,     3,     3,     3,
-       9,     4,     3,     3,     3,     3,     3
+       0,     6,    13,    14,    15,     5,     6,     7,    16,    17,
+       0,    15,     5,    18,     5,     7,    17,     6,     7,     7,
+       8,    19,     5,     7,    18,     3,     7,     3,     3,     9,
+       8,     3,     3,     3,     9,     8,     3,     3,     3,     9,
+       4,     3,    10,     3,     3,     3,     3,     3,     3,     3,
+       3,    11,    10,     3,     3,     3,     3,    11,     3,     3,
+       3
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    10,    11,    11,    12,    12,    13,    13,    13,    13,
-      14,    15,    15,    16,    17,    17,    18,    18,    19
+       0,    12,    13,    13,    14,    14,    15,    15,    15,    15,
+      16,    16,    17,    17,    18,    18,    19,    19
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     0,     1,     1,     2,     4,     3,     3,     2,
-       1,     1,     2,     2,     3,     4,     0,     2,    21
+       2,     3,     3,     4,     0,     2,    31,    21
 };
 
 
@@ -657,7 +668,7 @@ enum { YYENOMEM = -2 };
       }                                                           \
     else                                                          \
       {                                                           \
-        yyerror (YY_("syntax error: cannot back up")); \
+        yyerror (out, YY_("syntax error: cannot back up")); \
         YYERROR;                                                  \
       }                                                           \
   while (0)
@@ -690,7 +701,7 @@ do {                                                                      \
     {                                                                     \
       YYFPRINTF (stderr, "%s ", Title);                                   \
       yy_symbol_print (stderr,                                            \
-                  Kind, Value); \
+                  Kind, Value, out); \
       YYFPRINTF (stderr, "\n");                                           \
     }                                                                     \
 } while (0)
@@ -702,10 +713,11 @@ do {                                                                      \
 
 static void
 yy_symbol_value_print (FILE *yyo,
-                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep)
+                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, Map **out)
 {
   FILE *yyoutput = yyo;
   YY_USE (yyoutput);
+  YY_USE (out);
   if (!yyvaluep)
     return;
   YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN
@@ -720,12 +732,12 @@ yy_symbol_value_print (FILE *yyo,
 
 static void
 yy_symbol_print (FILE *yyo,
-                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep)
+                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, Map **out)
 {
   YYFPRINTF (yyo, "%s %s (",
              yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
 
-  yy_symbol_value_print (yyo, yykind, yyvaluep);
+  yy_symbol_value_print (yyo, yykind, yyvaluep, out);
   YYFPRINTF (yyo, ")");
 }
 
@@ -759,7 +771,7 @@ do {                                                            \
 
 static void
 yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
-                 int yyrule)
+                 int yyrule, Map **out)
 {
   int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -772,7 +784,7 @@ yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr,
                        YY_ACCESSING_SYMBOL (+yyssp[yyi + 1 - yynrhs]),
-                       &yyvsp[(yyi + 1) - (yynrhs)]);
+                       &yyvsp[(yyi + 1) - (yynrhs)], out);
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -780,7 +792,7 @@ yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
 # define YY_REDUCE_PRINT(Rule)          \
 do {                                    \
   if (yydebug)                          \
-    yy_reduce_print (yyssp, yyvsp, Rule); \
+    yy_reduce_print (yyssp, yyvsp, Rule, out); \
 } while (0)
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -1088,9 +1100,10 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
 
 static void
 yydestruct (const char *yymsg,
-            yysymbol_kind_t yykind, YYSTYPE *yyvaluep)
+            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, Map **out)
 {
   YY_USE (yyvaluep);
+  YY_USE (out);
   if (!yymsg)
     yymsg = "Deleting";
   YY_SYMBOL_PRINT (yymsg, yykind, yyvaluep, yylocationp);
@@ -1117,7 +1130,7 @@ int yynerrs;
 `----------*/
 
 int
-yyparse (void)
+yyparse (Map **out)
 {
     yy_state_fast_t yystate = 0;
     /* Number of tokens to shift before error messages enabled.  */
@@ -1361,59 +1374,177 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 6: /* entity_block: '{' entity_attributes brush_block '}'  */
-#line 34 "map_parser.y"
-                                      { printf("=========\n"); }
-#line 1368 "map_parser.c"
+  case 3: /* file: entity_list  */
+#line 43 "map_parser.y"
+              {
+	*out = (yyvsp[0].map);
+}
+#line 1383 "map_parser.c"
     break;
 
-  case 7: /* entity_block: '{' entity_attributes '}'  */
-#line 35 "map_parser.y"
-                            { printf("=========\n"); }
-#line 1374 "map_parser.c"
+  case 4: /* entity_list: entity  */
+#line 49 "map_parser.y"
+         {
+	Map *map = malloc(sizeof(Map));
+	Error err = MapInit(map); // TODO: manage error
+	err = MapAddEntity(map, (yyvsp[0].entity)); // TODO: manage error
+	(yyval.map) = map;
+}
+#line 1394 "map_parser.c"
     break;
 
-  case 8: /* entity_block: '{' brush_block '}'  */
-#line 36 "map_parser.y"
-                       { printf("=========\n"); }
-#line 1380 "map_parser.c"
+  case 5: /* entity_list: entity_list entity  */
+#line 55 "map_parser.y"
+                     {
+	Error err = MapAddEntity((yyvsp[-1].map), (yyvsp[0].entity)); // TODO: manage error
+	(yyval.map) = (yyvsp[-1].map);
+}
+#line 1403 "map_parser.c"
     break;
 
-  case 9: /* entity_block: '{' '}'  */
-#line 37 "map_parser.y"
-          { printf("=========\n"); }
-#line 1386 "map_parser.c"
+  case 6: /* entity: '{' attributes brush_block '}'  */
+#line 62 "map_parser.y"
+                               {
+	(yyvsp[-1].entity)->attributes = (yyvsp[-2].attributes);
+	(yyval.entity) = (yyvsp[-1].entity);
+}
+#line 1412 "map_parser.c"
     break;
 
-  case 10: /* entity_attributes: entity  */
-#line 40 "map_parser.y"
-                          { printf("---------\n"); }
-#line 1392 "map_parser.c"
+  case 7: /* entity: '{' attributes '}'  */
+#line 66 "map_parser.y"
+                     {
+	Entity *entity = malloc(sizeof(Entity));
+	Error err = EntityInit(entity); // TODO: manage error
+	DictionaryFree(entity->attributes);
+	entity->attributes = (yyvsp[-1].attributes);
+	(yyval.entity) = entity;
+}
+#line 1424 "map_parser.c"
     break;
 
-  case 13: /* key_value: TOKEN_STRING TOKEN_STRING  */
-#line 48 "map_parser.y"
-                                     { printf("attrib: %s %s\n", (yyvsp[-1].string), (yyvsp[0].string)); }
-#line 1398 "map_parser.c"
+  case 8: /* entity: '{' brush_block '}'  */
+#line 73 "map_parser.y"
+                       {
+	(yyval.entity) = (yyvsp[-1].entity);
+}
+#line 1432 "map_parser.c"
     break;
 
-  case 14: /* brush_block: '{' brush '}'  */
-#line 52 "map_parser.y"
-               { printf("---------\n"); }
-#line 1404 "map_parser.c"
+  case 9: /* entity: '{' '}'  */
+#line 76 "map_parser.y"
+          {
+	Entity *entity = malloc(sizeof(Entity));
+	Error err = EntityInit(entity); // TODO: manage error
+	(yyval.entity) = entity;
+}
+#line 1442 "map_parser.c"
     break;
 
-  case 18: /* face: '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' TOKEN_TEXTURE TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER  */
-#line 67 "map_parser.y"
+  case 10: /* attributes: TOKEN_STRING TOKEN_STRING  */
+#line 84 "map_parser.y"
+                            {
+	Dictionary *dict = DictionaryInit(0); // TODO: manage error
+	DictionarySet(dict, (yyvsp[-1].string), (yyvsp[0].string));
+	(yyval.attributes) = dict;
+}
+#line 1452 "map_parser.c"
+    break;
+
+  case 11: /* attributes: attributes TOKEN_STRING TOKEN_STRING  */
+#line 89 "map_parser.y"
+                                       {
+	DictionarySet((yyvsp[-2].attributes), (yyvsp[-1].string), (yyvsp[0].string));
+	(yyval.attributes) = (yyvsp[-2].attributes);
+}
+#line 1461 "map_parser.c"
+    break;
+
+  case 12: /* brush_block: '{' brush '}'  */
+#line 96 "map_parser.y"
+               {
+	Entity *entity = malloc(sizeof(Entity));
+	Error err = EntityInit(entity); // TODO: manage error
+	err = EntityAddBrush(entity, (yyvsp[-1].brush)); // TODO: manage error
+	(yyval.entity) = entity;
+}
+#line 1472 "map_parser.c"
+    break;
+
+  case 13: /* brush_block: brush_block '{' brush '}'  */
+#line 102 "map_parser.y"
+                            {
+	Error err = EntityAddBrush((yyvsp[-3].entity), (yyvsp[-1].brush)); // TODO: manage error
+	(yyval.entity) = (yyvsp[-3].entity);
+}
+#line 1481 "map_parser.c"
+    break;
+
+  case 14: /* brush: %empty  */
+#line 109 "map_parser.y"
+         {
+	Brush *brush = malloc(sizeof(Brush));
+	Error err = BrushInit(brush); // TODO: manage error
+	(yyval.brush) = brush;
+}
+#line 1491 "map_parser.c"
+    break;
+
+  case 15: /* brush: brush face  */
+#line 114 "map_parser.y"
+             {
+	Error err = BrushAddFace((yyvsp[-1].brush), (yyvsp[0].face)); // TODO: manage error
+	(yyval.brush) = (yyvsp[-1].brush);
+}
+#line 1500 "map_parser.c"
+    break;
+
+  case 16: /* face: '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' TOKEN_TEXTURE '[' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ']' '[' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ']' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER  */
+#line 128 "map_parser.y"
+{
+	Face *face = malloc(sizeof(Face));
+	*face = (Face){
+		.points = {(yyvsp[-29].number), (yyvsp[-28].number), (yyvsp[-27].number), (yyvsp[-24].number), (yyvsp[-23].number), (yyvsp[-22].number), (yyvsp[-19].number), (yyvsp[-18].number), (yyvsp[-17].number)},
+		.texture = {
+			.name = (yyvsp[-15].texture),
+			.uAxis = {(yyvsp[-13].number), (yyvsp[-12].number), (yyvsp[-11].number)},
+			.vAxis = {(yyvsp[-7].number), (yyvsp[-6].number), (yyvsp[-5].number)},
+			.offsetX = (yyvsp[-10].number),
+			.offsetY = (yyvsp[-4].number),
+			.rotation = (yyvsp[-2].number),
+			.scaleX = (yyvsp[-1].number),
+			.scaleY = (yyvsp[0].number),
+		}
+	};
+	(yyval.face) = face;
+}
+#line 1522 "map_parser.c"
+    break;
+
+  case 17: /* face: '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' TOKEN_TEXTURE TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER  */
+#line 151 "map_parser.y"
   {
-	  printf("p1(x: %g, y: %g, z: %g), p2(x: %g, y: %g, z: %g), p3(x: %g, y: %g, z: %g), texture: %s, x_off: %g, y_off: %g, rot: %g, x_scale: %g, y_scale: %g\n",
-		 (yyvsp[-19].number), (yyvsp[-18].number), (yyvsp[-17].number), (yyvsp[-14].number), (yyvsp[-13].number), (yyvsp[-12].number), (yyvsp[-9].number), (yyvsp[-8].number), (yyvsp[-7].number), (yyvsp[-5].texture), (yyvsp[-4].number), (yyvsp[-3].number), (yyvsp[-2].number), (yyvsp[-1].number), (yyvsp[0].number));
+	Face *face = malloc(sizeof(Face));
+	*face = (Face){
+		.points = {(yyvsp[-19].number), (yyvsp[-18].number), (yyvsp[-17].number), (yyvsp[-14].number), (yyvsp[-13].number), (yyvsp[-12].number), (yyvsp[-9].number), (yyvsp[-8].number), (yyvsp[-7].number)},
+		.texture = {
+			.name = (yyvsp[-5].texture),
+			.uAxis = {1.0f, 0.0f, 0.0f},
+			.vAxis = {0.0f, -1.0f, 0.0f},
+			.offsetX = (yyvsp[-4].number),
+			.offsetY = (yyvsp[-3].number),
+			.rotation = (yyvsp[-2].number),
+			.scaleX = (yyvsp[-1].number),
+			.scaleY = (yyvsp[0].number),
+		}
+	};
+	(yyval.face) = face;
   }
-#line 1413 "map_parser.c"
+#line 1544 "map_parser.c"
     break;
 
 
-#line 1417 "map_parser.c"
+#line 1548 "map_parser.c"
 
       default: break;
     }
@@ -1487,7 +1618,7 @@ yyerrlab:
                 yysyntax_error_status = YYENOMEM;
               }
           }
-        yyerror (yymsgp);
+        yyerror (out, yymsgp);
         if (yysyntax_error_status == YYENOMEM)
           YYNOMEM;
       }
@@ -1507,7 +1638,7 @@ yyerrlab:
       else
         {
           yydestruct ("Error: discarding",
-                      yytoken, &yylval);
+                      yytoken, &yylval, out);
           yychar = YYEMPTY;
         }
     }
@@ -1563,7 +1694,7 @@ yyerrlab1:
 
 
       yydestruct ("Error: popping",
-                  YY_ACCESSING_SYMBOL (yystate), yyvsp);
+                  YY_ACCESSING_SYMBOL (yystate), yyvsp, out);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -1601,7 +1732,7 @@ yyabortlab:
 | yyexhaustedlab -- YYNOMEM (memory exhaustion) comes here.  |
 `-----------------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (YY_("memory exhausted"));
+  yyerror (out, YY_("memory exhausted"));
   yyresult = 2;
   goto yyreturnlab;
 
@@ -1616,7 +1747,7 @@ yyreturnlab:
          user semantic actions for why this is necessary.  */
       yytoken = YYTRANSLATE (yychar);
       yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval);
+                  yytoken, &yylval, out);
     }
   /* Do not reclaim the symbols of the rule whose action triggered
      this YYABORT or YYACCEPT.  */
@@ -1625,7 +1756,7 @@ yyreturnlab:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-                  YY_ACCESSING_SYMBOL (+*yyssp), yyvsp);
+                  YY_ACCESSING_SYMBOL (+*yyssp), yyvsp, out);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -1637,9 +1768,9 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 73 "map_parser.y"
+#line 170 "map_parser.y"
 
 
-void yyerror(const char *s) {
-	fprintf(stderr, "Error: %d: %s: %s\n", yylineno, s, yytext);
+void yyerror(Map **map, const char *err) {
+	fprintf(stderr, "Error: %s\n", err);
 }

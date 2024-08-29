@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "common.h"
+
+#include "map.h"
 #include "map_parser.h"
 
 void yyerror(const char *s);
@@ -30,6 +31,8 @@ STRING \"([^\\\"]|\\.)*\"
 ")"                   { return ')'; }
 "{"                   { return '{'; }
 "}"                   { return '}'; }
+"["                   { return '['; }
+"]"                   { return ']'; }
 [ \t\n\r\v]+            ; // Ignore whitespace
 <<EOF>>	              { yyterminate(); }
 .                     { yyerror("Unknown token"); }

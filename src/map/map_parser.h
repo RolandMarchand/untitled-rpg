@@ -39,7 +39,7 @@
 # define YY_YY_MAP_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -65,13 +65,18 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 12 "map_parser.y"
+#line 14 "map_parser.y"
 
 	float number;
 	char* string;
 	char* texture;
+	Map *map;
+	Entity *entity;
+	Face *face;
+	Brush *brush;
+	Dictionary *attributes;
 
-#line 75 "map_parser.h"
+#line 80 "map_parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -83,7 +88,7 @@ typedef union YYSTYPE YYSTYPE;
 extern YYSTYPE yylval;
 
 
-int yyparse (void);
+int yyparse (Map **out);
 
 
 #endif /* !YY_YY_MAP_PARSER_H_INCLUDED  */

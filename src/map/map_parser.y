@@ -2,76 +2,173 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "map.h"
 #include "map_scanner.h"
 
-void yyerror(const char *s);
+void yyerror(Map **map, const char *err);
 %}
 
+%define parse.trace
 %define parse.error verbose
 
 %union {
 	float number;
 	char* string;
 	char* texture;
+	Map *map;
+	Entity *entity;
+	Face *face;
+	Brush *brush;
+	Dictionary *attributes;
 }
+
+%parse-param {Map **out}
 
 %token <number> TOKEN_NUMBER
 %token <texture> TOKEN_TEXTURE
 %token <string> TOKEN_STRING
 
+%type <face> face
+%type <brush> brush
+%type <entity> brush_block
+%type <attributes> attributes
+%type <entity> entity
+%type <map> entity_list
+%type <map> file
+
 %%
+
 file:
   %empty
-| entity_block_list
+| entity_list {
+	*out = $1;
+}
 ;
 
-entity_block_list:
-  entity_block
-| entity_block_list entity_block
-;
-
-entity_block:
-'{' entity_attributes brush_block '}' { printf("=========\n"); }
-| '{' entity_attributes '}' { printf("=========\n"); }
-| '{' brush_block  '}' { printf("=========\n"); }
-| '{' '}' { printf("=========\n"); }
-;
-
-entity_attributes: entity { printf("---------\n"); }
+entity_list:
+  entity {
+	Map *map = malloc(sizeof(Map));
+	Error err = MapInit(map); // TODO: manage error
+	err = MapAddEntity(map, $1); // TODO: manage error
+	$$ = map;
+}
+| entity_list entity {
+	Error err = MapAddEntity($1, $2); // TODO: manage error
+	$$ = $1;
+}
 ;
 
 entity:
-  key_value
-| entity key_value
+'{' attributes brush_block '}' {
+	$3->attributes = $2;
+	$$ = $3;
+}
+| '{' attributes '}' {
+	Entity *entity = malloc(sizeof(Entity));
+	Error err = EntityInit(entity); // TODO: manage error
+	DictionaryFree(entity->attributes);
+	entity->attributes = $2;
+	$$ = entity;
+}
+| '{' brush_block  '}' {
+	$$ = $2;
+}
+| '{' '}' {
+	Entity *entity = malloc(sizeof(Entity));
+	Error err = EntityInit(entity); // TODO: manage error
+	$$ = entity;
+}
 ;
 
-key_value: TOKEN_STRING TOKEN_STRING { printf("attrib: %s %s\n", $1, $2); }
+attributes:
+  TOKEN_STRING TOKEN_STRING {
+	Dictionary *dict = DictionaryInit(0); // TODO: manage error
+	DictionarySet(dict, $1, $2);
+	$$ = dict;
+}
+| attributes TOKEN_STRING TOKEN_STRING {
+	DictionarySet($1, $2, $3);
+	$$ = $1;
+}
 ;
 
 brush_block:
- '{' brush '}' { printf("---------\n"); }
-| brush_block '{' brush '}' 
+ '{' brush '}' {
+	Entity *entity = malloc(sizeof(Entity));
+	Error err = EntityInit(entity); // TODO: manage error
+	err = EntityAddBrush(entity, $2); // TODO: manage error
+	$$ = entity;
+}
+| brush_block '{' brush '}' {
+	Error err = EntityAddBrush($1, $3); // TODO: manage error
+	$$ = $1;
+}
 ;
 
 brush:
-  %empty
-| brush face
+  %empty {
+	Brush *brush = malloc(sizeof(Brush));
+	Error err = BrushInit(brush); // TODO: manage error
+	$$ = brush;
+}
+| brush face {
+	Error err = BrushAddFace($1, $2); // TODO: manage error
+	$$ = $1;
+}
 ;
 
 face:
-  '(' TOKEN_NUMBER[p1x] TOKEN_NUMBER[p1y] TOKEN_NUMBER[p1z] ')'
-  '(' TOKEN_NUMBER[p2x] TOKEN_NUMBER[p2y] TOKEN_NUMBER[p2z] ')'
-  '(' TOKEN_NUMBER[p3x] TOKEN_NUMBER[p3y] TOKEN_NUMBER[p3z] ')'
+  '(' TOKEN_NUMBER[x1] TOKEN_NUMBER[y1] TOKEN_NUMBER[z1] ')'
+  '(' TOKEN_NUMBER[x2] TOKEN_NUMBER[y2] TOKEN_NUMBER[z2] ')'
+  '(' TOKEN_NUMBER[x3] TOKEN_NUMBER[y3] TOKEN_NUMBER[z3] ')'
   TOKEN_TEXTURE[tex]
-  TOKEN_NUMBER[xoff] TOKEN_NUMBER[yoff] TOKEN_NUMBER[rot] TOKEN_NUMBER[xscale] TOKEN_NUMBER[yscale]
+  '[' TOKEN_NUMBER[ux] TOKEN_NUMBER[uy] TOKEN_NUMBER[uz] TOKEN_NUMBER[offsetx] ']'
+  '[' TOKEN_NUMBER[vx] TOKEN_NUMBER[vy] TOKEN_NUMBER[vz] TOKEN_NUMBER[offsety] ']'
+  TOKEN_NUMBER[rot] TOKEN_NUMBER[scalex] TOKEN_NUMBER[scaley]
+{
+	Face *face = malloc(sizeof(Face));
+	*face = (Face){
+		.points = {$x1, $y1, $z1, $x2, $y2, $z2, $x3, $y3, $z3},
+		.texture = {
+			.name = $tex,
+			.uAxis = {$ux, $uy, $uz},
+			.vAxis = {$vx, $vy, $vz},
+			.offsetX = $offsetx,
+			.offsetY = $offsety,
+			.rotation = $rot,
+			.scaleX = $scalex,
+			.scaleY = $scaley,
+		}
+	};
+	$$ = face;
+}
+
+  | '(' TOKEN_NUMBER[x1] TOKEN_NUMBER[y1] TOKEN_NUMBER[z1] ')'
+  '(' TOKEN_NUMBER[x2] TOKEN_NUMBER[y2] TOKEN_NUMBER[z2] ')'
+  '(' TOKEN_NUMBER[x3] TOKEN_NUMBER[y3] TOKEN_NUMBER[z3] ')'
+  TOKEN_TEXTURE[tex] TOKEN_NUMBER[offsetx] TOKEN_NUMBER[offsety] 
+  TOKEN_NUMBER[rot] TOKEN_NUMBER[scalex] TOKEN_NUMBER[scaley]
   {
-	  printf("p1(x: %g, y: %g, z: %g), p2(x: %g, y: %g, z: %g), p3(x: %g, y: %g, z: %g), texture: %s, x_off: %g, y_off: %g, rot: %g, x_scale: %g, y_scale: %g\n",
-		 $p1x, $p1y, $p1z, $p2x, $p2y, $p2z, $p3x, $p3y, $p3z, $tex, $xoff, $yoff, $rot, $xscale, $yscale);
+	Face *face = malloc(sizeof(Face));
+	*face = (Face){
+		.points = {$x1, $y1, $z1, $x2, $y2, $z2, $x3, $y3, $z3},
+		.texture = {
+			.name = $tex,
+			.uAxis = {1.0f, 0.0f, 0.0f},
+			.vAxis = {0.0f, -1.0f, 0.0f},
+			.offsetX = $offsetx,
+			.offsetY = $offsety,
+			.rotation = $rot,
+			.scaleX = $scalex,
+			.scaleY = $scaley,
+		}
+	};
+	$$ = face;
   }
 ;
 
 %%
 
-void yyerror(const char *s) {
-	fprintf(stderr, "Error: %d: %s: %s\n", yylineno, s, yytext);
+void yyerror(Map **map, const char *err) {
+	fprintf(stderr, "Error: %s\n", err);
 }

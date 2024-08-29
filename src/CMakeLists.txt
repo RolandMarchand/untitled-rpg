@@ -10,7 +10,7 @@ endif()
 # Main executable
 add_executable(main main.c resources.c)
 add_dependencies(main archive_resources)
-target_link_libraries(main PRIVATE raylib dictionary whereami)
+target_link_libraries(main PRIVATE raylib dictionary whereami map)
 set_target_properties(main
   PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 if (MSVC)

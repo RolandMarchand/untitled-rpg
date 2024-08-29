@@ -15,9 +15,15 @@ if (BISON_FOUND AND FLEX_FOUND)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating parser")
 
+  if (WIN32)
+    set (ADDITIONAL_FLEX_FLAGS "--wincompat")
+  else()
+    set (ADDITIONAL_FLEX_FLAGS "")
+  endif()
+
   # Use flex to generate scanner for .MAP files
   add_custom_target(generate_scanner
-    COMMAND flex -lX --nounistd -o map_scanner.c --header-file=map_scanner.h
+    COMMAND flex ${ADDITIONAL_FLEX_FLAGS} --nounistd -o map_scanner.c --header-file=map_scanner.h
     map_scanner.l
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating scanner")
@@ -26,6 +32,5 @@ else()
 endif()
 
 # .MAP file parser
-add_library(map_parser
-  ${CMAKE_CURRENT_SOURCE_DIR}/map_scanner.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/map_parser.c)
+add_library(map map.c map_scanner.c map_parser.c)
+target_link_libraries(map dictionary)
