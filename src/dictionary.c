@@ -176,6 +176,27 @@ Error DictionaryErase(Dictionary *dict, const char *key)
 	return ERR_OUT_OF_MEMORY;
 }
 
+Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity)
+{
+	if (dict == NULL || out == NULL
+	    || capacity < dict->count * sizeof(char*)) {
+		return ERR_NULL_REFERENCE;
+	}
+
+	if (capacity < dict->count) {
+		return ERR_INSUFFICIENT_SPACE;
+	}
+
+	for (size_t i = 0; i < dict->size; i++) {
+		if (dict->entries[i].state != ENTRY_STATE_FILLED) {
+			continue;
+		}
+		out[i] = dict->entries[i].key;
+	}
+
+	return ERR_OK;
+}
+
 Error DictionaryIncreaseSize(Dictionary *dict)
 {
 	Dictionary *bigDict =
@@ -338,7 +359,7 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint32_t seed)
 	h2 = fmix(h2);
 
 	h1 += h2;
-	h2 += h1;
+	/* h2 += h1; */
 
 	/* 'h2' is also a high entropy value. */
 	return h1;

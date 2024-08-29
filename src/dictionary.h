@@ -48,3 +48,12 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value);
  * dictionary. Return an error code if the key is not found or if the operation
  * fails. */
 Error DictionaryErase(Dictionary *dict, const char *key);
+
+
+/* Retrieve all keys from the dictionary. References to the stored strings are
+ * placed into the buffer 'out', up to specified 'capacity' bytes. In cases
+ * where the capacity is lower than the dictionary's 'count' attribute,
+ * ERROR_INSUFFICIENT_SPACE is returned and nothing is written. In cases where
+ * 'out' OR 'dict' is NULL, ERR_NULL_REFERENCE is returned. Return ERR_OK upon
+ * successful execution. */
+Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity);
