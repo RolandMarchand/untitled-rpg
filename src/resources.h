@@ -1,7 +1,5 @@
 #pragma once
 
-#include <limits.h>
-#include <stdbool.h>
 #include "common.h"
 
 #define ENTITIES_PATH "/sprites/entities"

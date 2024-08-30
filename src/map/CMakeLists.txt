@@ -34,3 +34,12 @@ endif()
 # .MAP file parser
 add_library(map map.c map_scanner.c map_parser.c)
 target_link_libraries(map dictionary)
+set_source_files_properties(map_parser.c PROPERTIES
+  SKIP_LINTING ON)
+set_source_files_properties(map_scanner.c PROPERTIES
+  SKIP_LINTING ON)
+set_source_files_properties(map_parser.h PROPERTIES
+  SKIP_LINTING ON)
+set_source_files_properties(map_scanner.h PROPERTIES
+  SKIP_LINTING ON)
+

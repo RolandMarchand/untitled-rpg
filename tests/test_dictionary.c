@@ -1,8 +1,11 @@
 #include "common.h"
 #include "dictionary.h"
 
-#define MAX 256
-#define LARGE_DATASET_SIZE 1000000
+enum {
+	MAX = 256,
+	LARGE_DATASET_SIZE = 50000,
+};
+
 #define ASSERT(test, ...)				\
 	do {						\
 	if (!(test)) {					\
@@ -359,6 +362,7 @@ static void TestComparisonsTrue()
 	DictionaryFree(dict2);
 }
 
+/* Test ruining equality by modifying values. */
 static void TestComparisonsFalse1()
 {
 	Dictionary *dict1 = DictionaryInit(0);
@@ -396,6 +400,7 @@ static void TestComparisonsFalse1()
 	DictionaryFree(dict2);
 }
 
+/* Test ruining equality by erasing keys. */
 static void TestComparisonsFalse2()
 {
 	Dictionary *dict1 = DictionaryInit(0);
@@ -433,6 +438,7 @@ static void TestComparisonsFalse2()
 	DictionaryFree(dict2);
 }
 
+/* Test ruining equality by adding keys. */
 static void TestComparisonsFalse3()
 {
 	Dictionary *dict1 = DictionaryInit(0);

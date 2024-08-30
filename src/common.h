@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 #ifdef _MSC_VER
 #define strdup _strdup
@@ -24,23 +23,32 @@
 	(((err) >= 0 && (err) < ERR_UNKNOWN) ? (const char *[]){		\
 		[ERR_OK] = "Operation completed successfully",			\
 		[ERR_FILE_NOT_FOUND] = "File not found",			\
+		[ERR_FILE_READ_FAILURE] = "Failed to read from the file",	\
+		[ERR_FILE_SEEK_FAILURE] = "Failed to move the file pointer",	\
+		[ERR_FILE_WRITE_FAILURE] = "Failed to write to the file",	\
 		[ERR_INSUFFICIENT_SPACE] = "Insufficient space available",	\
 		[ERR_INVALID_ARGUMENT] = "Invalid argument provided",		\
 		[ERR_LOADING_RESOURCES] = "Error loading resources",		\
 		[ERR_NULL_REFERENCE] = "Null reference encountered",		\
 		[ERR_OUT_OF_MEMORY] = "Out of memory",				\
 		[ERR_RESOURCE_NOT_FOUND] = "Resource not found",		\
+		[ERR_SYNTAX_ERROR] = "Syntax error",				\
 		[ERR_UNKNOWN] = "Unknown error occurred",			\
 	}[err] : "Invalid error code")
 
 typedef enum {
 	ERR_OK = 0,
 	ERR_FILE_NOT_FOUND,
+	ERR_FILE_READ_FAILURE,
+	ERR_FILE_SEEK_FAILURE,
+	ERR_FILE_WRITE_FAILURE,
 	ERR_INSUFFICIENT_SPACE,
 	ERR_INVALID_ARGUMENT,
 	ERR_LOADING_RESOURCES,
 	ERR_NULL_REFERENCE,
 	ERR_OUT_OF_MEMORY,
 	ERR_RESOURCE_NOT_FOUND,
+	ERR_SYNTAX_ERROR,
+
 	ERR_UNKNOWN, /* Unknown should be the last error in the enum */
 } Error;

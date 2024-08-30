@@ -1,7 +1,9 @@
 #include "dictionary.h"
 
 #define DICTIONARY_MAX_LOAD 0.75
-#define DICTIONARY_MAGNITUDE_INCREASE 2
+enum {
+	DICTIONARY_MAGNITUDE_INCREASE = 2,
+};
 
 typedef enum {
 	ENTRY_STATE_EMPTY = 0,
@@ -251,9 +253,9 @@ Error DictionaryGetValues(Dictionary *dict, char **out, size_t capacity)
 
 static int DictionaryCompareInternal(const void *a, const void *b)
 {
-	const char *a_s = *(const char **)a;
-	const char *b_s = *(const char **)b;
-	return strcmp(a_s, b_s);
+	const char *aStr = *(const char **)a;
+	const char *bStr = *(const char **)b;
+	return strcmp(aStr, bStr);
 }
 
 bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2)
@@ -401,12 +403,12 @@ Error DictionaryIncreaseSize(Dictionary *dict)
 	return ERR_OK;
 }
 
-static uint64_t rotl(uint64_t x, int8_t r)
+static uint64_t Rotl(uint64_t x, int8_t r)
 {
 	return (x << r) | (x >> (64 - r));
 }
 
-static uint64_t fmix(uint64_t k)
+static uint64_t Fmix(uint64_t k)
 {
 	k ^= k >> 33;
 	k *= 0xff51afd7ed558ccdLLU;
@@ -436,17 +438,17 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 		uint64_t k2 = blocks[i * 2 + 1];
 
 		k1 *= c1;
-		k1 = rotl(k1, 31);
+		k1 = Rotl(k1, 31);
 		k1 *= c2;
 		h1 ^= k1;
-		h1 = rotl(h1, 27);
+		h1 = Rotl(h1, 27);
 		h1 += h2;
 		h1 = h1 * 5 + 0x52dce729;
 		k2 *= c2;
-		k2 = rotl(k2, 33);
+		k2 = Rotl(k2, 33);
 		k2 *= c1;
 		h2 ^= k2;
-		h2 = rotl(h2, 31);
+		h2 = Rotl(h2, 31);
 		h2 += h1;
 		h2 = h2 * 5 + 0x38495ab5;
 	}
@@ -478,7 +480,7 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 	case 9:
 		k2 ^= (uint64_t)(tail[8]) << 0;
 		k2 *= c2;
-		k2 = rotl(k2, 33);
+		k2 = Rotl(k2, 33);
 		k2 *= c1;
 		h2 ^= k2;
 		/* fall-through */
@@ -506,7 +508,7 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 	case 1:
 		k1 ^= (uint64_t)(tail[0]) << 0;
 		k1 *= c1;
-		k1 = rotl(k1, 31);
+		k1 = Rotl(k1, 31);
 		k1 *= c2;
 		h1 ^= k1;
 	};
@@ -517,8 +519,8 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 	h1 += h2;
 	h2 += h1;
 
-	h1 = fmix(h1);
-	h2 = fmix(h2);
+	h1 = Fmix(h1);
+	h2 = Fmix(h2);
 
 	h1 += h2;
 	/* h2 += h1; */
