@@ -81,4 +81,4 @@ jobs:
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
         cmake --build ${{ steps.strings.outputs.build-output-dir }} --target tests --config ${{ matrix.build_type }} &&
-        ctest --test-dir ${{ steps.strings.outputs.build-output-dir }} --build-config ${{ matrix.build_type }}
+        ctest --test-dir ${{ steps.strings.outputs.build-output-dir }} --build-config ${{ matrix.build_type }} --output-on-failure
