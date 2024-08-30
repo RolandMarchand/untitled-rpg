@@ -1,8 +1,9 @@
 #pragma once
 
+#include "common.h"
 #include "dictionary.h"
 
-typedef enum Point {
+typedef enum MapPoint {
 	POINT_1_X = 0,
 	POINT_1_Y,
 	POINT_1_Z,
@@ -12,17 +13,17 @@ typedef enum Point {
 	POINT_3_X,
 	POINT_3_Y,
 	POINT_3_Z,
-} Point;
+} MapPoint;
 
-typedef enum Axis {
+typedef enum MapAxis {
 	AXIS_X = 0,
 	AXIS_Y,
 	AXIS_Z,
-} Axis;
+} MapAxis;
 
-typedef struct Face {
+typedef struct MapFace {
 	float points[9];
-	struct {
+	struct MapTexture {
 		char *name;
 		float uAxis[3];
 		float vAxis[3];
@@ -32,70 +33,73 @@ typedef struct Face {
 		float scaleX;
 		float scaleY;
 	} texture;
-} Face;
+} MapFace;
 
-typedef struct Brush {
-	Face *faces;
+typedef struct MapBrush {
+	MapFace *faces;
 	size_t facesCount;
 	size_t facesSize;	
-} Brush;
+} MapBrush;
 
-typedef struct Entity {
+typedef struct MapEntity {
 	Dictionary *attributes;
-	Brush *brushes;
+	MapBrush *brushes;
 	size_t brushesCount;
 	size_t brushesSize;
-} Entity;
+} MapEntity;
 
 typedef struct Map {
-	Entity *entities;
+	MapEntity *entities;
 	size_t entitiesCount;
 	size_t entitiesSize;
 } Map;
 
 /* Initialize a Brush structure, allocating memory for its faces. Return an
  * error code if initialization fails. */
-Error BrushInit(Brush *out);
+Error MapBrushInit(MapBrush *out);
 
 /* Initialize an Entity structure, allocating memory for its brushes and
  * attributes. Return an error code if initialization fails. */
-Error EntityInit(Entity *out);
+Error MapEntityInit(MapEntity *out);
 
 /* Initialize a Map structure, allocating memory for its entities
  * array. Return an error code if initialization fails. */
 Error MapInit(Map *out);
 
 /* Free the memory used by a Brush, including its faces. */
-void BrushFree(Brush *out);
+void MapBrushFree(MapBrush *out);
 
 /* Free the memory used by an Entity, including its brushes and attributes. */
-void EntityFree(Entity *out);
+void MapEntityFree(MapEntity *out);
 
 /* Free the memory used by a Map, including its entities. */
 void MapFree(Map *out);
 
 /* Create a deep copy of a Face structure. Returns an error code on memory
  * allocation failure. */
-Error FaceDuplicate(Face *out, const Face *in);
+Error MapFaceDuplicate(MapFace *out, const MapFace *in);
 
 /* Create a deep copy of a Brush structure. Returns an error code on memory
  * allocation failure. */
-Error BrushDuplicate(Brush *out, const Brush *in);
+Error MapBrushDuplicate(MapBrush *out, const MapBrush *in);
 
 /* Create a deep copy of an Entity structure. Returns an error code on memory
  * allocation failure. */
-Error EntityDuplicate(Entity *out, const Entity *in);
+Error MapEntityDuplicate(MapEntity *out, const MapEntity *in);
 
 /* Add a copy of a Face to an Brush's faces array. Returns an error code if
  * memory allocation fails. */
-Error BrushAddFace(Brush *out, const Face *toCopy);
+Error MapBrushAddFace(MapBrush *out, const MapFace *toCopy);
 
 /* Add a copy of a Brush to an Entity's brushes array. Returns an error code if
  * memory allocation fails. */
-Error EntityAddBrush(Entity *out, const Brush *toCopy);
+Error MapEntityAddBrush(MapEntity *out, const MapBrush *toCopy);
 
 /* Add a copy of an Entity to a Map's entities array. Returns an error code if
  * memory allocation fails. */
-Error MapAddEntity(Map *out, const Entity *toCopy);
+Error MapAddEntity(Map *out, const MapEntity *toCopy);
 
-Error MapParse(Map **out, const char *in);
+Error MapDuplicate(Map *out, const Map *in);
+
+/* set *out to NULL in case the file is empty or there was a parsing error. The file position will be at the end if successful, and back where it originally was if not successful. Out will be null is in case of an error.*/
+Error MapParse(Map **out, FILE *file);

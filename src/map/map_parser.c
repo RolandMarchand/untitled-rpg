@@ -511,8 +511,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    42,    42,    43,    49,    55,    62,    66,    73,    76,
-      84,    89,    96,   102,   109,   114,   121,   146
+       0,    42,    42,    45,    51,    57,    64,    68,    75,    78,
+      86,    91,    98,   104,   111,   116,   123,   148
 };
 #endif
 
@@ -1374,136 +1374,144 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 3: /* file: entity_list  */
-#line 43 "map_parser.y"
-              {
-	*out = (yyvsp[0].map);
+  case 2: /* file: %empty  */
+#line 42 "map_parser.y"
+       {
+	*out = NULL;
 }
 #line 1383 "map_parser.c"
     break;
 
+  case 3: /* file: entity_list  */
+#line 45 "map_parser.y"
+              {
+	*out = (yyvsp[0].map);
+}
+#line 1391 "map_parser.c"
+    break;
+
   case 4: /* entity_list: entity  */
-#line 49 "map_parser.y"
+#line 51 "map_parser.y"
          {
 	Map *map = malloc(sizeof(Map));
 	Error err = MapInit(map); // TODO: manage error
 	err = MapAddEntity(map, (yyvsp[0].entity)); // TODO: manage error
 	(yyval.map) = map;
 }
-#line 1394 "map_parser.c"
+#line 1402 "map_parser.c"
     break;
 
   case 5: /* entity_list: entity_list entity  */
-#line 55 "map_parser.y"
+#line 57 "map_parser.y"
                      {
 	Error err = MapAddEntity((yyvsp[-1].map), (yyvsp[0].entity)); // TODO: manage error
 	(yyval.map) = (yyvsp[-1].map);
 }
-#line 1403 "map_parser.c"
+#line 1411 "map_parser.c"
     break;
 
   case 6: /* entity: '{' attributes brush_block '}'  */
-#line 62 "map_parser.y"
+#line 64 "map_parser.y"
                                {
 	(yyvsp[-1].entity)->attributes = (yyvsp[-2].attributes);
 	(yyval.entity) = (yyvsp[-1].entity);
 }
-#line 1412 "map_parser.c"
+#line 1420 "map_parser.c"
     break;
 
   case 7: /* entity: '{' attributes '}'  */
-#line 66 "map_parser.y"
+#line 68 "map_parser.y"
                      {
-	Entity *entity = malloc(sizeof(Entity));
-	Error err = EntityInit(entity); // TODO: manage error
+	MapEntity *entity = malloc(sizeof(MapEntity));
+	Error err = MapEntityInit(entity); // TODO: manage error
 	DictionaryFree(entity->attributes);
 	entity->attributes = (yyvsp[-1].attributes);
 	(yyval.entity) = entity;
 }
-#line 1424 "map_parser.c"
-    break;
-
-  case 8: /* entity: '{' brush_block '}'  */
-#line 73 "map_parser.y"
-                       {
-	(yyval.entity) = (yyvsp[-1].entity);
-}
 #line 1432 "map_parser.c"
     break;
 
+  case 8: /* entity: '{' brush_block '}'  */
+#line 75 "map_parser.y"
+                       {
+	(yyval.entity) = (yyvsp[-1].entity);
+}
+#line 1440 "map_parser.c"
+    break;
+
   case 9: /* entity: '{' '}'  */
-#line 76 "map_parser.y"
+#line 78 "map_parser.y"
           {
-	Entity *entity = malloc(sizeof(Entity));
-	Error err = EntityInit(entity); // TODO: manage error
+	MapEntity *entity = malloc(sizeof(MapEntity));
+	Error err = MapEntityInit(entity); // TODO: manage error
 	(yyval.entity) = entity;
 }
-#line 1442 "map_parser.c"
+#line 1450 "map_parser.c"
     break;
 
   case 10: /* attributes: TOKEN_STRING TOKEN_STRING  */
-#line 84 "map_parser.y"
+#line 86 "map_parser.y"
                             {
 	Dictionary *dict = DictionaryInit(0); // TODO: manage error
 	DictionarySet(dict, (yyvsp[-1].string), (yyvsp[0].string));
 	(yyval.attributes) = dict;
 }
-#line 1452 "map_parser.c"
+#line 1460 "map_parser.c"
     break;
 
   case 11: /* attributes: attributes TOKEN_STRING TOKEN_STRING  */
-#line 89 "map_parser.y"
+#line 91 "map_parser.y"
                                        {
 	DictionarySet((yyvsp[-2].attributes), (yyvsp[-1].string), (yyvsp[0].string));
 	(yyval.attributes) = (yyvsp[-2].attributes);
 }
-#line 1461 "map_parser.c"
+#line 1469 "map_parser.c"
     break;
 
   case 12: /* brush_block: '{' brush '}'  */
-#line 96 "map_parser.y"
+#line 98 "map_parser.y"
                {
-	Entity *entity = malloc(sizeof(Entity));
-	Error err = EntityInit(entity); // TODO: manage error
-	err = EntityAddBrush(entity, (yyvsp[-1].brush)); // TODO: manage error
+	MapEntity *entity = malloc(sizeof(MapEntity));
+	Error err = MapEntityInit(entity); // TODO: manage error
+	err = MapEntityAddBrush(entity, (yyvsp[-1].brush)); // TODO: manage error
 	(yyval.entity) = entity;
 }
-#line 1472 "map_parser.c"
+#line 1480 "map_parser.c"
     break;
 
   case 13: /* brush_block: brush_block '{' brush '}'  */
-#line 102 "map_parser.y"
+#line 104 "map_parser.y"
                             {
-	Error err = EntityAddBrush((yyvsp[-3].entity), (yyvsp[-1].brush)); // TODO: manage error
+	Error err = MapEntityAddBrush((yyvsp[-3].entity), (yyvsp[-1].brush)); // TODO: manage error
 	(yyval.entity) = (yyvsp[-3].entity);
 }
-#line 1481 "map_parser.c"
+#line 1489 "map_parser.c"
     break;
 
   case 14: /* brush: %empty  */
-#line 109 "map_parser.y"
+#line 111 "map_parser.y"
          {
-	Brush *brush = malloc(sizeof(Brush));
-	Error err = BrushInit(brush); // TODO: manage error
+	MapBrush *brush = malloc(sizeof(MapBrush));
+	Error err = MapBrushInit(brush); // TODO: manage error
 	(yyval.brush) = brush;
 }
-#line 1491 "map_parser.c"
+#line 1499 "map_parser.c"
     break;
 
   case 15: /* brush: brush face  */
-#line 114 "map_parser.y"
+#line 116 "map_parser.y"
              {
-	Error err = BrushAddFace((yyvsp[-1].brush), (yyvsp[0].face)); // TODO: manage error
+	Error err = MapBrushAddFace((yyvsp[-1].brush), (yyvsp[0].face)); // TODO: manage error
 	(yyval.brush) = (yyvsp[-1].brush);
 }
-#line 1500 "map_parser.c"
+#line 1508 "map_parser.c"
     break;
 
   case 16: /* face: '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' TOKEN_TEXTURE '[' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ']' '[' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ']' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER  */
-#line 128 "map_parser.y"
+#line 130 "map_parser.y"
 {
-	Face *face = malloc(sizeof(Face));
-	*face = (Face){
+	MapFace *face = malloc(sizeof(MapFace));
+	*face = (MapFace){
 		.points = {(yyvsp[-29].number), (yyvsp[-28].number), (yyvsp[-27].number), (yyvsp[-24].number), (yyvsp[-23].number), (yyvsp[-22].number), (yyvsp[-19].number), (yyvsp[-18].number), (yyvsp[-17].number)},
 		.texture = {
 			.name = (yyvsp[-15].texture),
@@ -1518,14 +1526,14 @@ yyreduce:
 	};
 	(yyval.face) = face;
 }
-#line 1522 "map_parser.c"
+#line 1530 "map_parser.c"
     break;
 
   case 17: /* face: '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' '(' TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER ')' TOKEN_TEXTURE TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER TOKEN_NUMBER  */
-#line 151 "map_parser.y"
+#line 153 "map_parser.y"
   {
-	Face *face = malloc(sizeof(Face));
-	*face = (Face){
+	MapFace *face = malloc(sizeof(MapFace));
+	*face = (MapFace){
 		.points = {(yyvsp[-19].number), (yyvsp[-18].number), (yyvsp[-17].number), (yyvsp[-14].number), (yyvsp[-13].number), (yyvsp[-12].number), (yyvsp[-9].number), (yyvsp[-8].number), (yyvsp[-7].number)},
 		.texture = {
 			.name = (yyvsp[-5].texture),
@@ -1540,11 +1548,11 @@ yyreduce:
 	};
 	(yyval.face) = face;
   }
-#line 1544 "map_parser.c"
+#line 1552 "map_parser.c"
     break;
 
 
-#line 1548 "map_parser.c"
+#line 1556 "map_parser.c"
 
       default: break;
     }
@@ -1768,9 +1776,9 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 170 "map_parser.y"
+#line 172 "map_parser.y"
 
 
 void yyerror(Map **map, const char *err) {
-	fprintf(stderr, "Error: %s\n", err);
+	fprintf(stderr, "Error: Line %d: %s\n", yylineno, err);
 }

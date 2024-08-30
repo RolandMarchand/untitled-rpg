@@ -2,11 +2,11 @@
 #include "map_parser.h"
 #include "map_scanner.h"
 
-#define FACE_BUFFER_INIT_SIZE (8 * sizeof(Face))
-#define BRUSH_BUFFER_INIT_SIZE (8 * sizeof(Brush))
-#define ENTITY_BUFFER_INIT_SIZE (8 * sizeof(Entity))
+#define FACE_BUFFER_INIT_SIZE (8 * sizeof(MapFace))
+#define BRUSH_BUFFER_INIT_SIZE (8 * sizeof(MapBrush))
+#define ENTITY_BUFFER_INIT_SIZE (8 * sizeof(MapEntity))
 
-Error BrushInit(Brush *out)
+Error MapBrushInit(MapBrush *out)
 {
 	if (out == NULL) {
 		return ERR_NULL_REFERENCE;
@@ -19,7 +19,7 @@ Error BrushInit(Brush *out)
 		: ERR_OK;
 }
 
-Error EntityInit(Entity *out)
+Error MapEntityInit(MapEntity *out)
 {
 	if (out == NULL) {
 		return ERR_NULL_REFERENCE;
@@ -47,7 +47,7 @@ Error MapInit(Map *out)
 		: ERR_OK;
 }
 
-void BrushFree(Brush *out)
+void MapBrushFree(MapBrush *out)
 {
 	if (out == NULL) {
 		return;
@@ -60,14 +60,14 @@ void BrushFree(Brush *out)
 	free(out->faces);
 }
 
-void EntityFree(Entity *out)
+void MapEntityFree(MapEntity *out)
 {
 	if (out == NULL) {
 		return;
 	}
 
 	for (size_t i = 0; i < out->brushesCount; i++) {
-		BrushFree(&out->brushes[i]);
+		MapBrushFree(&out->brushes[i]);
 	}
 
 	free(out->brushes);
@@ -81,19 +81,19 @@ void MapFree(Map *out)
 	}
 
 	for (size_t i = 0; i < out->entitiesCount; i++) {
-		EntityFree(&out->entities[i]);
+		MapEntityFree(&out->entities[i]);
 	}
 
 	free(out->entities);
 }
 
-Error FaceDuplicate(Face *out, const Face *in)
+Error MapFaceDuplicate(MapFace *out, const MapFace *in)
 {
 	if (out == NULL || in == NULL) {
 		return ERR_NULL_REFERENCE;
 	}
 
-	memcpy(out, in, sizeof(Face));
+	memcpy(out, in, sizeof(MapFace));
 	out->texture.name = strdup(in->texture.name);
 
 	return out->texture.name == NULL
@@ -101,7 +101,7 @@ Error FaceDuplicate(Face *out, const Face *in)
 		: ERR_OK;
 }
 
-Error BrushDuplicate(Brush *out, const Brush *in)
+Error MapBrushDuplicate(MapBrush *out, const MapBrush *in)
 {
 	if (out == NULL || in == NULL) {
 		return ERR_NULL_REFERENCE;
@@ -116,7 +116,7 @@ Error BrushDuplicate(Brush *out, const Brush *in)
 	}
 
 	for (size_t i = 0; i < out->facesCount; i++) {
-		Error err = FaceDuplicate(&out->faces[i], &in->faces[i]);
+		Error err = MapFaceDuplicate(&out->faces[i], &in->faces[i]);
 		if (err != ERR_OK) {
 			return err;
 		}
@@ -125,7 +125,7 @@ Error BrushDuplicate(Brush *out, const Brush *in)
 	return ERR_OK;
 }
 
-Error EntityDuplicate(Entity *out, const Entity *in)
+Error MapEntityDuplicate(MapEntity *out, const MapEntity *in)
 {
 	if (out == NULL || in == NULL) {
 		return ERR_NULL_REFERENCE;
@@ -141,7 +141,7 @@ Error EntityDuplicate(Entity *out, const Entity *in)
 	}
 
 	for (size_t i = 0; i < out->brushesCount; i++) {
-		Error err = BrushDuplicate(&out->brushes[i], &in->brushes[i]);
+		Error err = MapBrushDuplicate(&out->brushes[i], &in->brushes[i]);
 		if (err != ERR_OK) {
 			return err;
 		}
@@ -150,10 +150,10 @@ Error EntityDuplicate(Entity *out, const Entity *in)
 	return ERR_OK;
 }
 
-Error BrushAddFace(Brush *out, const Face *toCopy)
+Error MapBrushAddFace(MapBrush *out, const MapFace *toCopy)
 {
 	/* Increase the size of the array if needed. */
-	if (out->facesCount * sizeof(Face) == out->facesSize) {
+	if (out->facesCount * sizeof(MapFace) == out->facesSize) {
 		out->facesSize *= 2;
 		out->faces = realloc(out->faces, out->facesSize);
 		if (out->faces == NULL) {
@@ -161,16 +161,16 @@ Error BrushAddFace(Brush *out, const Face *toCopy)
 		}
 	}
 
-	Error err = FaceDuplicate(&out->faces[out->facesCount], toCopy);
+	Error err = MapFaceDuplicate(&out->faces[out->facesCount], toCopy);
 	out->facesCount++;
 
 	return err;
 }
 
-Error EntityAddBrush(Entity *out, const Brush *toCopy)
+Error MapEntityAddBrush(MapEntity *out, const MapBrush *toCopy)
 {
 	/* Increase the size of the array if needed. */
-	if (out->brushesCount * sizeof(Face) == out->brushesSize) {
+	if (out->brushesCount * sizeof(MapFace) == out->brushesSize) {
 		out->brushesSize *= 2;
 		out->brushes = realloc(out->brushes, out->brushesSize);
 		if (out->brushes == NULL) {
@@ -178,16 +178,16 @@ Error EntityAddBrush(Entity *out, const Brush *toCopy)
 		}
 	}
 
-	Error err = BrushDuplicate(&out->brushes[out->brushesCount], toCopy);
+	Error err = MapBrushDuplicate(&out->brushes[out->brushesCount], toCopy);
 	out->brushesCount++;
 
 	return err;
 }
 
-Error MapAddEntity(Map *out, const Entity *toCopy)
+Error MapAddEntity(Map *out, const MapEntity *toCopy)
 {
 	/* Increase the size of the array if needed. */
-	if (out->entitiesCount * sizeof(Entity) == out->entitiesSize) {
+	if (out->entitiesCount * sizeof(MapEntity) == out->entitiesSize) {
 		out->entitiesSize *= 2;
 		out->entities = realloc(out->entities, out->entitiesSize);
 		if (out->entities == NULL) {
@@ -195,16 +195,60 @@ Error MapAddEntity(Map *out, const Entity *toCopy)
 		}
 	}
 
-	Error err = EntityDuplicate(&out->entities[out->entitiesCount], toCopy);
+	Error err = MapEntityDuplicate(&out->entities[out->entitiesCount], toCopy);
 	out->entitiesCount++;
 
 	return err;
 }
 
-Error MapParse(Map **out, const char *in)
+Error MapDuplicate(Map *out, const Map *in)
 {
-	yyin = fopen(in, "r");
-	yyparse(out);
+	if (out == NULL || in == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
+	out->entitiesCount = in->entitiesCount;
+	out->entitiesSize = in->entitiesSize;
+	out->entities = malloc(out->entitiesSize);
+
+	if (out->entities == NULL) {
+		return ERR_OUT_OF_MEMORY;
+	}
+
+	for (size_t i = 0; i < out->entitiesCount; i++) {
+		Error err = MapEntityDuplicate(&out->entities[i], &in->entities[i]);
+		if (err != ERR_OK) {
+			return err;
+		}
+	}
+
+	return ERR_OK;
+}
+
+Error MapParse(Map **out, FILE *file)
+{
+	if (out == NULL || file == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
+
+	yyin = file;
+	if (yyin == NULL) {
+		
+		return ERR_FILE_NOT_FOUND;
+	}
+
+	yylineno = 1;
+
+	long originalPosition = ftell(file);
+
+	if (yyparse(out) != 0) {
+		yyrestart(yyin);
+		if (fseek(file, originalPosition, SEEK_SET) != 0) {
+			return ERR_FILE_SEEK_FAILURE;
+		}
+		return ERR_SYNTAX_ERROR;
+	}
+
+	yyrestart(yyin);
 	return ERR_OK;
 }

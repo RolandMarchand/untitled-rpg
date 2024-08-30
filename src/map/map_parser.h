@@ -71,9 +71,9 @@ union YYSTYPE
 	char* string;
 	char* texture;
 	Map *map;
-	Entity *entity;
-	Face *face;
-	Brush *brush;
+	MapEntity *entity;
+	MapFace *face;
+	MapBrush *brush;
 	Dictionary *attributes;
 
 #line 80 "map_parser.h"

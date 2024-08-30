@@ -4,8 +4,8 @@ add_executable(test_scanner EXCLUDE_FROM_ALL test_scanner.c)
 add_executable(test_parser EXCLUDE_FROM_ALL test_parser.c)
 add_executable(test_dictionary EXCLUDE_FROM_ALL test_dictionary.c)
 
-target_link_libraries(test_scanner PRIVATE map_parser)
-target_link_libraries(test_parser PRIVATE map_parser)
+target_link_libraries(test_scanner PRIVATE map)
+target_link_libraries(test_parser PRIVATE map)
 target_link_libraries(test_dictionary PRIVATE dictionary)
 
 add_test(TestParser test_parser)
