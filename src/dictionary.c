@@ -205,23 +205,158 @@ Error DictionaryErase(Dictionary *dict, const char *key)
 
 Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity)
 {
-	if (dict == NULL || out == NULL
-	    || capacity < dict->count * sizeof(char*)) {
+	if (dict == NULL || out == NULL) {
 		return ERR_NULL_REFERENCE;
 	}
 
-	if (capacity < dict->count) {
+	if (capacity < dict->count * sizeof(char*)) {
 		return ERR_INSUFFICIENT_SPACE;
 	}
 
-	for (size_t i = 0; i < dict->capacity; i++) {
-		if (dict->entries[i].state != ENTRY_STATE_FILLED) {
+	int outIdx = 0;
+	for (size_t dictIdx = 0; dictIdx < dict->capacity; dictIdx++) {
+		if (dict->entries[dictIdx].state != ENTRY_STATE_FILLED) {
 			continue;
 		}
-		out[i] = dict->entries[i].key;
+		/* seg fault */
+		out[outIdx] = dict->entries[dictIdx].key;
+		outIdx++;
 	}
 
 	return ERR_OK;
+}
+
+Error DictionaryGetValues(Dictionary *dict, char **out, size_t capacity)
+{
+	if (dict == NULL || out == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
+
+	if (capacity < dict->count * sizeof(char*)) {
+		return ERR_INSUFFICIENT_SPACE;
+	}
+
+	int outIdx = 0;
+	for (size_t dictIdx = 0; dictIdx < dict->capacity; dictIdx++) {
+		if (dict->entries[dictIdx].state != ENTRY_STATE_FILLED) {
+			continue;
+		}
+		/* seg fault */
+		out[outIdx] = dict->entries[dictIdx].value;
+		outIdx++;
+	}
+
+	return ERR_OK;
+}
+
+static int DictionaryCompareInternal(const void *a, const void *b)
+{
+	const char *a_s = *(const char **)a;
+	const char *b_s = *(const char **)b;
+	return strcmp(a_s, b_s);
+}
+
+bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2)
+{
+	/* Compare pointers. */
+	if (dict1 == NULL || dict2 == NULL) {
+		return false;
+	}
+	if (dict1 == dict2) {
+		return true;
+	}
+	if (dict1->count != dict2->count) {
+		return false;
+	}
+	if (dict1->entries == dict2->entries) {
+		return true;
+	}
+
+	size_t allocSpace = dict1->count * sizeof(char*);
+
+	/* Compare keys. */
+	/* Allocate space for keys. */
+	char **dict1Keys = malloc(allocSpace);
+	if (dict1Keys == NULL) {
+		return ERR_OUT_OF_MEMORY;
+	}
+	char **dict2Keys = malloc(allocSpace);
+	if (dict2Keys == NULL) {
+		free(dict1Keys);
+		return ERR_OUT_OF_MEMORY;
+	}
+
+	/* Fetch keys. */
+	Error err = DictionaryGetKeys(dict1, dict1Keys, allocSpace);
+	if (err != ERR_OK) {
+		free(dict1Keys);
+		free(dict2Keys);
+		return false;
+	}
+	err = DictionaryGetKeys(dict2, dict2Keys, allocSpace);
+	if (err != ERR_OK) {
+		free(dict1Keys);
+		free(dict2Keys);
+		return false;
+	}
+
+	/* Sort keys for easy comparison. */
+	qsort(dict1Keys, dict1->count, sizeof(char*), DictionaryCompareInternal);
+	qsort(dict2Keys, dict2->count, sizeof(char*), DictionaryCompareInternal);
+
+	/* Compare sorted keys. */
+	for (size_t i = 0; i < dict1->count; i++) {
+		if (strcmp(dict1Keys[i], dict2Keys[i]) != 0) {
+			free(dict1Keys);
+			free(dict2Keys);
+			return false;
+		}
+	}
+	free(dict1Keys);
+	free(dict2Keys);
+
+	/* Compare values. */
+	/* Allocate space for values. */
+	char **dict1Values = malloc(allocSpace);
+	if (dict1Values == NULL) {
+		return ERR_OUT_OF_MEMORY;
+	}
+	char **dict2Values = malloc(allocSpace);
+	if (dict2Values == NULL) {
+		free(dict1Values);
+		return ERR_OUT_OF_MEMORY;
+	}
+
+	/* Fetch values. */
+	err = DictionaryGetValues(dict1, dict1Values, allocSpace);
+	if (err != ERR_OK) {
+		free(dict1Values);
+		free(dict2Values);
+		return false;
+	}
+	err = DictionaryGetValues(dict2, dict2Values, allocSpace);
+	if (err != ERR_OK) {
+		free(dict1Values);
+		free(dict2Values);
+		return false;
+	}
+
+	/* Sort values for easy comparison. */
+	qsort(dict1Values, dict1->count, sizeof(char*), DictionaryCompareInternal);
+	qsort(dict2Values, dict2->count, sizeof(char*), DictionaryCompareInternal);
+
+	/* Compare sorted values. */
+	for (size_t i = 0; i < dict1->count; i++) {
+		if (strcmp(dict1Values[i], dict2Values[i]) != 0) {
+			free(dict1Values);
+			free(dict2Values);
+			return false;
+		}
+	}
+	free(dict1Values);
+	free(dict2Values);
+
+	return true;
 }
 
 Error DictionaryIncreaseSize(Dictionary *dict)

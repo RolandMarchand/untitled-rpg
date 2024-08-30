@@ -71,8 +71,8 @@ static void TestLargeDataset()
 	char value[32];
 
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
-		snprintf(value, sizeof(value), "value%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
 
 		Error err = DictionarySet(dict, key, value);
 		ASSERT(err == ERR_OK,
@@ -85,8 +85,8 @@ static void TestLargeDataset()
 	       LARGE_DATASET_SIZE, dict->count);
 
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
-		snprintf(value, sizeof(value), "value%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
 
 		char buf[MAX];
 		int written = DictionaryGet(dict, key, buf, MAX);
@@ -131,8 +131,8 @@ static void TestStressDeletion()
 
 	/* Insert a large number of entries */
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
-		snprintf(value, sizeof(value), "value%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
 		int err = DictionarySet(dict, key, value);
 		ASSERT(err == ERR_OK, "%s upon setting a dictionary entry.\n",
 		       ERROR_TO_STRING(err));
@@ -143,7 +143,7 @@ static void TestStressDeletion()
 
 	/* Delete every other entry */
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i += 2) {
-		snprintf(key, sizeof(key), "key%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
 		Error err = DictionaryErase(dict, key);
 		ASSERT(err == ERR_OK, "%s upon erasing a dictionary entry.\n",
 		       ERROR_TO_STRING(err));
@@ -159,8 +159,8 @@ static void TestStressDeletion()
 
 	/* Verify remaining entries */
 	for (size_t i = 1; i < LARGE_DATASET_SIZE; i += 2) {
-		snprintf(key, sizeof(key), "key%zu", i);
-		snprintf(value, sizeof(value), "value%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
 
 		char buf[MAX];
 		int written = DictionaryGet(dict, key, buf, MAX);
@@ -175,11 +175,13 @@ static void TestStressDeletion()
 	DictionaryFree(dict);
 }
 
+/* Compare strings numerically since all generated strings begin with
+ * numbers. */
 static int CompareStrings(const void *a, const void *b)
 {
-	const char *str1 = *(char **)a;
-	const char *str2 = *(char **)b;
-	return strcmp(str1, str2);
+	int i = atoi(*(char **)a);
+	int j = atoi(*(char **)b);
+	return i - j;
 }
 
 static void TestGettingAllKeys()
@@ -190,8 +192,8 @@ static void TestGettingAllKeys()
 
 	/* Fill dictionary with input. */
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
-		snprintf(value, sizeof(value), "value%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
 
 		Error err = DictionarySet(dict, key, value);
 		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
@@ -205,6 +207,7 @@ static void TestGettingAllKeys()
 	/* Get all keys. */
 	size_t capacity = dict->count * sizeof(char*);
 	char **keys = malloc(capacity);
+	/* seg fault. */
 	Error err = DictionaryGetKeys(dict, keys, capacity);
 	ASSERT(err == ERR_OK, "%s: unable to get all keys in test\n",
 	       ERROR_TO_STRING(err));
@@ -213,13 +216,56 @@ static void TestGettingAllKeys()
 	qsort(keys, dict->count, sizeof(char*), CompareStrings);
 
 	for (size_t i = 0; i < dict->count; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
 
 		ASSERT(strcmp(key, keys[i]) == 0,
-		       "Input and output don't match when getting all keys.\n");
+		       "Getting all keys: expected %s, got %s.\n",
+		       key, keys[i]);
 	}
 
 	free(keys);
+	DictionaryFree(dict);
+}
+
+static void TestGettingAllValues()
+{
+	Dictionary *dict = DictionaryInit(0);
+	char key[32];
+	char value[32];
+
+	/* Fill dictionary with input. */
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
+
+		Error err = DictionarySet(dict, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+	}
+
+	ASSERT(dict->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict->count);
+
+	/* Get all keys. */
+	size_t capacity = dict->count * sizeof(char*);
+	char **values = malloc(capacity);
+	Error err = DictionaryGetValues(dict, values, capacity);
+	ASSERT(err == ERR_OK, "%s: unable to get all keys in test\n",
+	       ERROR_TO_STRING(err));
+
+	/* Sort to easily compare input with output. */
+	qsort(values, dict->count, sizeof(char*), CompareStrings);
+
+	for (size_t i = 0; i < dict->count; i++) {
+		snprintf(value, sizeof(value), "%zuvalue", i);
+
+		ASSERT(strcmp(value, values[i]) == 0,
+		       "Getting all keys: expected %s, got %s.\n",
+		       value, values[i]);
+	}
+
+	free(values);
 	DictionaryFree(dict);
 }
 
@@ -231,8 +277,8 @@ static void TestDuplication()
 
 	/* Fill dictionary with input. */
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
-		snprintf(value, sizeof(value), "value%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
 
 		Error err = DictionarySet(dict, key, value);
 		ASSERT(err == ERR_OK,
@@ -261,7 +307,7 @@ static void TestDuplication()
 	char expectedValue[32];
 	char receivedValue[32];
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
-		snprintf(key, sizeof(key), "key%zu", i);
+		snprintf(key, sizeof(key), "%zukey", i);
 
 		int err1 = DictionaryGet(dict, key, expectedValue, 32);
 		int err2 = DictionaryGet(dictDup, key, receivedValue, 32);
@@ -279,18 +325,165 @@ static void TestDuplication()
 	DictionaryFree(dictDup);
 }
 
+static void TestComparisonsTrue()
+{
+	Dictionary *dict1 = DictionaryInit(0);
+	Dictionary *dict2 = DictionaryInit(0);
+	char key[32];
+	char value[32];
+
+	/* Fill dictionaries with input. */
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
+
+		Error err = DictionarySet(dict1, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+		err = DictionarySet(dict2, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+	}
+
+	ASSERT(dict1->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict1->count);
+	ASSERT(dict2->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict2->count);
+
+	ASSERT(DictionaryCompare(dict1, dict2),
+	       "Expected dictionaries to be equal, received unequal\n");
+
+	DictionaryFree(dict1);
+	DictionaryFree(dict2);
+}
+
+static void TestComparisonsFalse1()
+{
+	Dictionary *dict1 = DictionaryInit(0);
+	Dictionary *dict2 = DictionaryInit(0);
+	char key[32];
+	char value[32];
+
+	/* Fill dictionaries with input. */
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
+
+		Error err = DictionarySet(dict1, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+		err = DictionarySet(dict2, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+	}
+
+	/* Ruin the equality. */
+	DictionarySet(dict1, "0key", "0value0");
+
+	ASSERT(dict1->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict1->count);
+	ASSERT(dict2->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict2->count);
+
+	ASSERT(!DictionaryCompare(dict1, dict2),
+	       "Expected dictionaries to be unequal, received equal\n");
+
+	DictionaryFree(dict1);
+	DictionaryFree(dict2);
+}
+
+static void TestComparisonsFalse2()
+{
+	Dictionary *dict1 = DictionaryInit(0);
+	Dictionary *dict2 = DictionaryInit(0);
+	char key[32];
+	char value[32];
+
+	/* Fill dictionaries with input. */
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
+
+		Error err = DictionarySet(dict1, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+		err = DictionarySet(dict2, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+	}
+
+	ASSERT(dict1->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict1->count);
+	ASSERT(dict2->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict2->count);
+
+	/* Ruin the equality. */
+	DictionaryErase(dict1, "0key");
+
+	ASSERT(!DictionaryCompare(dict1, dict2),
+	       "Expected dictionaries to be unequal, received equal\n");
+
+	DictionaryFree(dict1);
+	DictionaryFree(dict2);
+}
+
+static void TestComparisonsFalse3()
+{
+	Dictionary *dict1 = DictionaryInit(0);
+	Dictionary *dict2 = DictionaryInit(0);
+	char key[32];
+	char value[32];
+
+	/* Fill dictionaries with input. */
+	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
+		snprintf(key, sizeof(key), "%zukey", i);
+		snprintf(value, sizeof(value), "%zuvalue", i);
+
+		Error err = DictionarySet(dict1, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+		err = DictionarySet(dict2, key, value);
+		ASSERT(err == ERR_OK, "Error %s upon setting a large dataset entry %zu.\n",
+			ERROR_TO_STRING(err), i);
+	}
+
+	ASSERT(dict1->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict1->count);
+	ASSERT(dict2->count == LARGE_DATASET_SIZE,
+	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       LARGE_DATASET_SIZE, dict2->count);
+
+	/* Ruin the equality. */
+	DictionarySet(dict1, "newKey", "newValue");
+
+	ASSERT(!DictionaryCompare(dict1, dict2),
+	       "Expected dictionaries to be unequal, received equal\n");
+
+	DictionaryFree(dict1);
+	DictionaryFree(dict2);
+}
+
 int main(void)
 {
 	TestInitialization();
 	TestInsertion();
 	TestLargeDataset();
-	TestLargeDataset();
-	TestLargeDataset();
 	TestDeletion();
 	TestStressDeletion();
-	TestStressDeletion();
-	TestStressDeletion();
 	TestDuplication();
+	TestGettingAllKeys();
+	TestGettingAllValues();
+	TestComparisonsTrue();
+	TestComparisonsFalse1();
+	TestComparisonsFalse2();
+	TestComparisonsFalse3();
 
 	return succeed;
 }
