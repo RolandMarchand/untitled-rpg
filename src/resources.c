@@ -40,7 +40,7 @@ int GetResourcesPath(char *out, size_t capacity)
 
 	/* Calling wai_getExecutablePath() twice due to issue 43:
 	 * https://github.com/gpakosz/whereami/issues/43. */
-	char *execDirPath = (char*)malloc(execPathLength + 1);
+	char *execDirPath = (char *)malloc(execPathLength + 1);
 	if (execDirPath == NULL) {
 		perror("Unable to allocate memory to get the resources path");
 		return -1;
@@ -62,8 +62,7 @@ int GetResourcesPath(char *out, size_t capacity)
 		free(execDirPath);
 		return -1;
 	}
-	snprintf(out, capacity, "%s%s", execDirPath,
-			RESOURCES_ROOT_DIR);
+	snprintf(out, capacity, "%s%s", execDirPath, RESOURCES_ROOT_DIR);
 	free(execDirPath);
 	return IsDirectory(out) ? (int)resourcePathLength : -1;
 }

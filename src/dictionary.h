@@ -49,7 +49,6 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value);
  * fails. */
 Error DictionaryErase(Dictionary *dict, const char *key);
 
-
 /* Retrieve all keys from the dictionary. References to the stored strings are
  * placed into the buffer 'out', up to specified 'capacity' bytes. In cases
  * where the capacity is lower than the dictionary's 'count' attribute,
@@ -57,7 +56,6 @@ Error DictionaryErase(Dictionary *dict, const char *key);
  * 'out' OR 'dict' is NULL, ERR_NULL_REFERENCE is returned. Return ERR_OK upon
  * successful execution. */
 Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity);
-
 
 /* Retrieve all values from the dictionary. References to the stored strings are
  * placed into the buffer 'out', up to specified 'capacity' bytes. In cases
@@ -67,11 +65,9 @@ Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity);
  * successful execution. */
 Error DictionaryGetValues(Dictionary *dict, char **out, size_t capacity);
 
-
 /* Return true if both dictionaries have the same contents. Return false
  * otherwise, or if at least one of the dictionaries is invalid. */
 bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2);
-
 
 /* Return a deep copy of the dictionary given in 'dict'. The new dictionary is
  * independent of the original, and modifications to one will not affect the

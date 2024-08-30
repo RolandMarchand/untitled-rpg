@@ -38,7 +38,7 @@ typedef struct MapFace {
 typedef struct MapBrush {
 	MapFace *faces;
 	size_t facesCount;
-	size_t facesSize;	
+	size_t facesSize;
 } MapBrush;
 
 typedef struct MapEntity {

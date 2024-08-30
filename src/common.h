@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,22 +20,28 @@
 
 #define PRINT_ERR(...) fprintf(stderr, "Error: " __VA_ARGS__)
 
-#define ERROR_TO_STRING(err)							\
-	(((err) >= 0 && (err) < ERR_UNKNOWN) ? (const char *[]){		\
-		[ERR_OK] = "Operation completed successfully",			\
-		[ERR_FILE_NOT_FOUND] = "File not found",			\
-		[ERR_FILE_READ_FAILURE] = "Failed to read from the file",	\
-		[ERR_FILE_SEEK_FAILURE] = "Failed to move the file pointer",	\
-		[ERR_FILE_WRITE_FAILURE] = "Failed to write to the file",	\
-		[ERR_INSUFFICIENT_SPACE] = "Insufficient space available",	\
-		[ERR_INVALID_ARGUMENT] = "Invalid argument provided",		\
-		[ERR_LOADING_RESOURCES] = "Error loading resources",		\
-		[ERR_NULL_REFERENCE] = "Null reference encountered",		\
-		[ERR_OUT_OF_MEMORY] = "Out of memory",				\
-		[ERR_RESOURCE_NOT_FOUND] = "Resource not found",		\
-		[ERR_SYNTAX_ERROR] = "Syntax error",				\
-		[ERR_UNKNOWN] = "Unknown error occurred",			\
-	}[err] : "Invalid error code")
+#define ERROR_TO_STRING(err)                                                   \
+	(((err) >= 0 && (err) < ERR_UNKNOWN) ?                                 \
+		 (const char *[]){                                             \
+			 [ERR_OK] = "Operation completed successfully",        \
+			 [ERR_FILE_NOT_FOUND] = "File not found",              \
+			 [ERR_FILE_READ_FAILURE] =                             \
+				 "Failed to read from the file",               \
+			 [ERR_FILE_SEEK_FAILURE] =                             \
+				 "Failed to move the file pointer",            \
+			 [ERR_FILE_WRITE_FAILURE] =                            \
+				 "Failed to write to the file",                \
+			 [ERR_INSUFFICIENT_SPACE] =                            \
+				 "Insufficient space available",               \
+			 [ERR_INVALID_ARGUMENT] = "Invalid argument provided", \
+			 [ERR_LOADING_RESOURCES] = "Error loading resources",  \
+			 [ERR_NULL_REFERENCE] = "Null reference encountered",  \
+			 [ERR_OUT_OF_MEMORY] = "Out of memory",                \
+			 [ERR_RESOURCE_NOT_FOUND] = "Resource not found",      \
+			 [ERR_SYNTAX_ERROR] = "Syntax error",                  \
+			 [ERR_UNKNOWN] = "Unknown error occurred",             \
+		 }[err] :                                                      \
+		 "Invalid error code")
 
 typedef enum {
 	ERR_OK = 0,

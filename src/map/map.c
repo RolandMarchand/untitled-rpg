@@ -14,9 +14,7 @@ Error MapBrushInit(MapBrush *out)
 	out->facesSize = FACE_BUFFER_INIT_SIZE;
 	out->faces = malloc(out->facesSize);
 	out->facesCount = 0;
-	return out->faces == NULL
-		? ERR_OUT_OF_MEMORY
-		: ERR_OK;
+	return out->faces == NULL ? ERR_OUT_OF_MEMORY : ERR_OK;
 }
 
 Error MapEntityInit(MapEntity *out)
@@ -29,9 +27,7 @@ Error MapEntityInit(MapEntity *out)
 	out->brushesCount = 0;
 	out->attributes = DictionaryInit(0);
 	int oom = out->brushes == NULL || out->attributes == NULL;
-	return oom
-		? ERR_OUT_OF_MEMORY
-		: ERR_OK;
+	return oom ? ERR_OUT_OF_MEMORY : ERR_OK;
 }
 
 Error MapInit(Map *out)
@@ -42,9 +38,7 @@ Error MapInit(Map *out)
 	out->entitiesSize = ENTITY_BUFFER_INIT_SIZE;
 	out->entities = malloc(out->entitiesSize);
 	out->entitiesCount = 0;
-	return out->entities == NULL
-		? ERR_OUT_OF_MEMORY
-		: ERR_OK;
+	return out->entities == NULL ? ERR_OUT_OF_MEMORY : ERR_OK;
 }
 
 void MapBrushFree(MapBrush *out)
@@ -96,9 +90,7 @@ Error MapFaceDuplicate(MapFace *out, const MapFace *in)
 	memcpy(out, in, sizeof(MapFace));
 	out->texture.name = strdup(in->texture.name);
 
-	return out->texture.name == NULL
-		? ERR_OUT_OF_MEMORY
-		: ERR_OK;
+	return out->texture.name == NULL ? ERR_OUT_OF_MEMORY : ERR_OK;
 }
 
 Error MapBrushDuplicate(MapBrush *out, const MapBrush *in)
@@ -141,7 +133,8 @@ Error MapEntityDuplicate(MapEntity *out, const MapEntity *in)
 	}
 
 	for (size_t i = 0; i < out->brushesCount; i++) {
-		Error err = MapBrushDuplicate(&out->brushes[i], &in->brushes[i]);
+		Error err =
+			MapBrushDuplicate(&out->brushes[i], &in->brushes[i]);
 		if (err != ERR_OK) {
 			return err;
 		}
@@ -195,7 +188,8 @@ Error MapAddEntity(Map *out, const MapEntity *toCopy)
 		}
 	}
 
-	Error err = MapEntityDuplicate(&out->entities[out->entitiesCount], toCopy);
+	Error err =
+		MapEntityDuplicate(&out->entities[out->entitiesCount], toCopy);
 	out->entitiesCount++;
 
 	return err;
@@ -216,7 +210,8 @@ Error MapDuplicate(Map *out, const Map *in)
 	}
 
 	for (size_t i = 0; i < out->entitiesCount; i++) {
-		Error err = MapEntityDuplicate(&out->entities[i], &in->entities[i]);
+		Error err =
+			MapEntityDuplicate(&out->entities[i], &in->entities[i]);
 		if (err != ERR_OK) {
 			return err;
 		}
@@ -233,7 +228,6 @@ Error MapParse(Map **out, FILE *file)
 
 	yyin = file;
 	if (yyin == NULL) {
-		
 		return ERR_FILE_NOT_FOUND;
 	}
 

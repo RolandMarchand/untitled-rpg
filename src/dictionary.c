@@ -90,8 +90,8 @@ Dictionary *DictionaryDuplicate(const Dictionary *dict)
 		ret->entries[i].key = strdup(dict->entries[i].key);
 		ret->entries[i].value = strdup(dict->entries[i].value);
 
-		if (ret->entries[i].key == NULL
-		    || ret->entries[i].value == NULL) {
+		if (ret->entries[i].key == NULL ||
+		    ret->entries[i].value == NULL) {
 			DictionaryFree(ret);
 			return NULL;
 		}
@@ -149,7 +149,8 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value)
 			dict->entries[idx].hash = hash;
 			dict->entries[idx].state = ENTRY_STATE_FILLED;
 			dict->count++;
-			if (dict->count > dict->capacity * DICTIONARY_MAX_LOAD) {
+			if (dict->count >
+			    dict->capacity * DICTIONARY_MAX_LOAD) {
 				Error err = DictionaryIncreaseSize(dict);
 				if (err != ERR_OK) {
 					return err;
@@ -211,7 +212,7 @@ Error DictionaryGetKeys(Dictionary *dict, char **out, size_t capacity)
 		return ERR_NULL_REFERENCE;
 	}
 
-	if (capacity < dict->count * sizeof(char*)) {
+	if (capacity < dict->count * sizeof(char *)) {
 		return ERR_INSUFFICIENT_SPACE;
 	}
 
@@ -234,7 +235,7 @@ Error DictionaryGetValues(Dictionary *dict, char **out, size_t capacity)
 		return ERR_NULL_REFERENCE;
 	}
 
-	if (capacity < dict->count * sizeof(char*)) {
+	if (capacity < dict->count * sizeof(char *)) {
 		return ERR_INSUFFICIENT_SPACE;
 	}
 
@@ -274,7 +275,7 @@ bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2)
 		return true;
 	}
 
-	size_t allocSpace = dict1->count * sizeof(char*);
+	size_t allocSpace = dict1->count * sizeof(char *);
 
 	/* Compare keys. */
 	/* Allocate space for keys. */
@@ -303,8 +304,10 @@ bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2)
 	}
 
 	/* Sort keys for easy comparison. */
-	qsort(dict1Keys, dict1->count, sizeof(char*), DictionaryCompareInternal);
-	qsort(dict2Keys, dict2->count, sizeof(char*), DictionaryCompareInternal);
+	qsort(dict1Keys, dict1->count, sizeof(char *),
+	      DictionaryCompareInternal);
+	qsort(dict2Keys, dict2->count, sizeof(char *),
+	      DictionaryCompareInternal);
 
 	/* Compare sorted keys. */
 	for (size_t i = 0; i < dict1->count; i++) {
@@ -344,8 +347,10 @@ bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2)
 	}
 
 	/* Sort values for easy comparison. */
-	qsort(dict1Values, dict1->count, sizeof(char*), DictionaryCompareInternal);
-	qsort(dict2Values, dict2->count, sizeof(char*), DictionaryCompareInternal);
+	qsort(dict1Values, dict1->count, sizeof(char *),
+	      DictionaryCompareInternal);
+	qsort(dict2Values, dict2->count, sizeof(char *),
+	      DictionaryCompareInternal);
 
 	/* Compare sorted values. */
 	for (size_t i = 0; i < dict1->count; i++) {

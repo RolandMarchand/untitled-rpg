@@ -8,22 +8,8 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-message(STATUS "Looking for clang-tidy")
-find_program(CLANG_TIDY NAMES "clang-tidy")
-
-if (CLANG_TIDY)
-  message(STATUS "clang-tidy found")
-  set(CMAKE_C_CLANG_TIDY clang-tidy -p ${CMAKE_BUILD_DIR})
-endif()
-
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_BINARY_DIR}/src)
-
-enable_testing()
-
-add_subdirectory(modules)
-add_subdirectory(src)
-add_subdirectory(tests)
 
 message(STATUS "Looking for clang-format")
 find_program(CLANG_FORMAT "clang-format")
@@ -42,3 +28,10 @@ if(CLANG_FORMAT)
     COMMENT "Formatting source files"
   )
 endif()
+
+enable_testing()
+
+add_subdirectory(modules)
+add_subdirectory(src)
+add_subdirectory(tests)
+
