@@ -36,10 +36,10 @@
    private implementation details that can be changed or removed.  */
 
 #ifndef YY_YY_MAP_PARSER_H_INCLUDED
-#define YY_YY_MAP_PARSER_H_INCLUDED
+# define YY_YY_MAP_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-#define YYDEBUG 1
+# define YYDEBUG 1
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -47,42 +47,47 @@ extern int yydebug;
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
-#define YYTOKENTYPE
-enum yytokentype {
-	YYEMPTY = -2,
-	YYEOF = 0, /* "end of file"  */
-	YYerror = 256, /* error  */
-	YYUNDEF = 257, /* "invalid token"  */
-	TOKEN_NUMBER = 258, /* TOKEN_NUMBER  */
-	TOKEN_TEXTURE = 259, /* TOKEN_TEXTURE  */
-	TOKEN_STRING = 260 /* TOKEN_STRING  */
-};
-typedef enum yytokentype yytoken_kind_t;
+# define YYTOKENTYPE
+  enum yytokentype
+  {
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    TOKEN_NUMBER = 258,            /* TOKEN_NUMBER  */
+    TOKEN_TEXTURE = 259,           /* TOKEN_TEXTURE  */
+    TOKEN_STRING = 260             /* TOKEN_STRING  */
+  };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
-#if !defined YYSTYPE && !defined YYSTYPE_IS_DECLARED
-union YYSTYPE {
-#line 14 "map_parser.y"
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+union YYSTYPE
+{
+#line 19 "map_parser.y"
 
 	float number;
-	char *string;
-	char *texture;
-	Map *map;
-	MapEntity *entity;
-	MapFace *face;
-	MapBrush *brush;
+	char* string;
+	char* texture;
+	Map map;
+	MapEntity entity;
+	MapFace face;
+	MapBrush brush;
 	Dictionary *attributes;
 
 #line 80 "map_parser.h"
+
 };
 typedef union YYSTYPE YYSTYPE;
-#define YYSTYPE_IS_TRIVIAL 1
-#define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
 #endif
 
-extern YYSTYPE yylval;
 
-int yyparse(Map **out);
+
+
+int yyparse (Map *out, void *scanner);
+
 
 #endif /* !YY_YY_MAP_PARSER_H_INCLUDED  */

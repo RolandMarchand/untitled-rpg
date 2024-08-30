@@ -101,5 +101,8 @@ Error MapAddEntity(Map *out, const MapEntity *toCopy);
 
 Error MapDuplicate(Map *out, const Map *in);
 
-/* set *out to NULL in case the file is empty or there was a parsing error. The file position will be at the end if successful, and back where it originally was if not successful. Out will be null is in case of an error.*/
-Error MapParse(Map **out, FILE *file);
+/* TODO: continue the doc. The file position will be at the end if successful, and back where it originally was if not successful. Out will be null is in case of an error. Map does not need to be freed if the parsing fails.*/
+Error MapParse(Map *out, FILE *file);
+
+
+void MapDebug(Map *db);

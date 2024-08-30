@@ -24,10 +24,16 @@ Error MapEntityInit(MapEntity *out)
 	}
 	out->brushesSize = BRUSH_BUFFER_INIT_SIZE;
 	out->brushes = malloc(out->brushesSize);
+	if (out->brushes == NULL) {
+		return ERR_OUT_OF_MEMORY;
+	}
 	out->brushesCount = 0;
 	out->attributes = DictionaryInit(0);
-	int oom = out->brushes == NULL || out->attributes == NULL;
-	return oom ? ERR_OUT_OF_MEMORY : ERR_OK;
+	if (out->attributes == NULL) {
+		free(out->brushes);
+		return ERR_OUT_OF_MEMORY;
+	}
+	return ERR_OK;
 }
 
 Error MapInit(Map *out)
@@ -101,7 +107,7 @@ Error MapBrushDuplicate(MapBrush *out, const MapBrush *in)
 
 	out->facesCount = in->facesCount;
 	out->facesSize = in->facesSize;
-	out->faces = malloc(out->facesSize);
+	out->faces = malloc(in->facesSize);
 
 	if (out->faces == NULL) {
 		return ERR_OUT_OF_MEMORY;
@@ -125,7 +131,7 @@ Error MapEntityDuplicate(MapEntity *out, const MapEntity *in)
 
 	out->brushesCount = in->brushesCount;
 	out->brushesSize = in->brushesSize;
-	out->brushes = malloc(out->brushesSize);
+	out->brushes = malloc(in->brushesSize);
 	out->attributes = DictionaryDuplicate(in->attributes);
 
 	if (out->brushes == NULL || out->attributes == NULL) {
@@ -163,7 +169,7 @@ Error MapBrushAddFace(MapBrush *out, const MapFace *toCopy)
 Error MapEntityAddBrush(MapEntity *out, const MapBrush *toCopy)
 {
 	/* Increase the size of the array if needed. */
-	if (out->brushesCount * sizeof(MapFace) == out->brushesSize) {
+	if (out->brushesCount * sizeof(MapBrush) == out->brushesSize) {
 		out->brushesSize *= 2;
 		out->brushes = realloc(out->brushes, out->brushesSize);
 		if (out->brushes == NULL) {
@@ -220,29 +226,28 @@ Error MapDuplicate(Map *out, const Map *in)
 	return ERR_OK;
 }
 
-Error MapParse(Map **out, FILE *file)
+Error MapParse(Map *out, FILE *file)
 {
 	if (out == NULL || file == NULL) {
 		return ERR_NULL_REFERENCE;
 	}
 
-	yyin = file;
-	if (yyin == NULL) {
-		return ERR_FILE_NOT_FOUND;
-	}
+	yyscan_t scanner;
+	yylex_init(&scanner);
 
-	yylineno = 1;
-
+	yyset_in(file, scanner);
+//	yyset_lineno(1, scanner);
 	long originalPosition = ftell(file);
 
-	if (yyparse(out) != 0) {
-		yyrestart(yyin);
+	if (yyparse(out, scanner) != 0) {
 		if (fseek(file, originalPosition, SEEK_SET) != 0) {
+			yylex_destroy(scanner);
 			return ERR_FILE_SEEK_FAILURE;
 		}
+		yylex_destroy(scanner);
 		return ERR_SYNTAX_ERROR;
 	}
 
-	yyrestart(yyin);
+	yylex_destroy(scanner);
 	return ERR_OK;
 }

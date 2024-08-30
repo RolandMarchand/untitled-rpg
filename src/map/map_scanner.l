@@ -1,18 +1,15 @@
 %{
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-
 
 #include "map.h"
 #include "map_parser.h"
 
 void yyerror(const char *s);
-
 %}
 
-%option noyywrap yylineno nounistd never-interactive
+%option noyywrap yylineno nounistd never-interactive reentrant bison-bridge
 
 /* Definitions */
 DIGIT   [0-9]
@@ -24,9 +21,9 @@ STRING \"([^\\\"]|\\.)*\"
 %%
 
 "//".*                ; // Ignore comments (single-line)
-{NUMBER}              { yylval.number = atof(yytext); return TOKEN_NUMBER; }
-{TEXTURE}             { yylval.texture = strdup(yytext); return TOKEN_TEXTURE; }
-{STRING}              { yylval.string = strdup(yytext); return TOKEN_STRING; }
+{NUMBER}              { yylval_param->number = atof(yytext); return TOKEN_NUMBER; }
+{TEXTURE}             { yylval_param->texture = strdup(yytext); return TOKEN_TEXTURE; }
+{STRING}              { yylval_param->string = strdup(yytext); return TOKEN_STRING; }
 "("                   { return '('; }
 ")"                   { return ')'; }
 "{"                   { return '{'; }

@@ -11,7 +11,7 @@ if (BISON_FOUND AND FLEX_FOUND)
 
   # First, generate the bison parser for .MAP files
   add_custom_target(generate_parser_proper
-    COMMAND bison -Wall -Hmap_parser.h -omap_parser.c map_parser.y
+    COMMAND bison --color=always -Wall -Hmap_parser.h -omap_parser.c map_parser.y
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating parser")
 

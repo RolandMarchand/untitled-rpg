@@ -10,7 +10,7 @@
 		}						\
 	} while (0)
 
-static int succeed = 0;
+int succeed = 0;
 /* Quake Notation. */
 const char *validSource1 = "{\n"
 	" \"sounds\" \"1\"\n"
@@ -66,7 +66,7 @@ const char *validSource2 = "{\n"
 	" \"origin\" \"256 384 160\"\n"
 	"}\n";
 
-static int MapCompare(Map *a, Map *b)
+int MapCompare(Map *a, Map *b)
 {
 	assert(a != NULL);
 	assert(b != NULL);
@@ -228,24 +228,24 @@ static int MapCompare(Map *a, Map *b)
 /* Initializes the provided parameters with a file stream, a Map object, and a
  * source string for testing purposes. Null arguments are ignored.If an error
  * occurs during initialization, an appropriate error code is returned. This
- * function is intended to be used in conjunction with DisposeMap() for proper
- * resource management only for returned resources. */
-static Error GetValidMap(FILE **fileOut, Map **mapOut)
+ * function expects that the arguments are freed with fclose() and MapFree()
+ * respectively if ever provided. */
+Error GetValidMap(FILE **fileOut, Map *mapOut)
 {
 	FILE *tmpFile = tmpfile();
 	if (tmpFile == NULL) {
 		return ERR_FILE_NOT_FOUND;
 	}
-	int printErr = fprintf(tmpFile, "%s", validSource1);
-	assert(printErr != 1);
-
-	assert(fseek(tmpFile, 0, SEEK_SET) == 0);
+	Error err = fprintf(tmpFile, "%s", validSource1);
+	assert(err != -1);
+	err = fseek(tmpFile, 0, SEEK_SET);
+	assert(err == 0);
 	
-	Map *tmpMap;
-	Error err = MapParse(&tmpMap, tmpFile);
+	Map tmpMap;
+	err = MapParse(&tmpMap, tmpFile);
 	assert(err == ERR_OK);
-
-	assert(fseek(tmpFile, 0, SEEK_SET) == 0);
+	err = fseek(tmpFile, 0, SEEK_SET);
+	assert(err == 0);
 
 	if (fileOut != NULL) {
 		*fileOut = tmpFile;
@@ -255,162 +255,177 @@ static Error GetValidMap(FILE **fileOut, Map **mapOut)
 	if (mapOut != NULL) {
 		*mapOut = tmpMap;
 	} else {
-		MapFree(tmpMap);
+		MapFree(&tmpMap);
 	}
 	
-	return err;
-}
-
-/* Cleans up resources by closing the file stream and deallocating the Map
- * object from GetValidMap(). */
-static void DisposeMap(FILE *file, Map *map)
-{
-	if (file != NULL) {
-		fclose(file);
-	}
-	if (map != NULL) {
-		MapFree(map);
-	}
+	return ERR_OK;
 }
 
 /* Test the positive equality of maps. */
-static void TestMapCompare1()
+void TestMapCompare1()
 {
-	Map *map1, *map2;
+	Map map1, map2;
 
 	Error err = GetValidMap(NULL, &map1);
 	assert(err == ERR_OK);
-
 	err = GetValidMap(NULL, &map2);
 	assert(err == ERR_OK);
 
-	ASSERT(MapCompare(map1, map2) == 0, "Expected both maps to be equal.\n");
+	ASSERT(MapCompare(&map1, &map2) == 0,
+	       "Expected both maps to be equal.\n");
 
-	DisposeMap(NULL, map1);
-	DisposeMap(NULL, map2);
+	MapFree(&map1);
+	MapFree(&map2);
 }
 
 /* Test the negative equality of maps. */
-static void TestMapCompare2()
+void TestMapCompare2()
 {
-	Map *map1, *map2;
+	Map map1, map2;
 
 	Error err = GetValidMap(NULL, &map1);
 	assert(err == ERR_OK);
-
 	err = GetValidMap(NULL, &map2);
 	assert(err == ERR_OK);
 
-	map1->entitiesCount--;
+	map1.entitiesCount--;
 
-	ASSERT(MapCompare(map1, map2) < 0, "Expected both maps to not be equal.\n");
+	ASSERT(MapCompare(&map1, &map2) != 0,
+	       "Expected both maps to not be equal.\n");
 
-	map1->entitiesCount++;
-	DisposeMap(NULL, map1);
-	DisposeMap(NULL, map2);
+	map1.entitiesCount++;
+
+	MapFree(&map1);
+	MapFree(&map2);
 }
 
 /* Test the negative equality of maps. */
-static void TestMapCompare3()
+void TestMapCompare3()
 {
-	Map *map1, *map2;
+	Map map1, map2;
 
 	Error err = GetValidMap(NULL, &map1);
 	assert(err == ERR_OK);
-
 	err = GetValidMap(NULL, &map2);
 	assert(err == ERR_OK);
 
-	map1->entities[0].brushesCount--;
+	map1.entities[0].brushesCount--;
 
-	ASSERT(MapCompare(map1, map2) < 0, "Expected both maps to not be equal.\n");
+	ASSERT(MapCompare(&map1, &map2) != 0,
+	       "Expected both maps to not be equal.\n");
 
-	map1->entities[0].brushesCount++;
-	DisposeMap(NULL, map1);
-	DisposeMap(NULL, map2);
+	map1.entities[0].brushesCount++;
+
+	MapFree(&map1);
+	MapFree(&map2);
 }
 
 /* Test the negative equality of maps. */
-static void TestMapCompare4()
+void TestMapCompare4()
 {
-	Map *map1, *map2;
+	Map map1, map2;
 
 	Error err = GetValidMap(NULL, &map1);
 	assert(err == ERR_OK);
-
 	err = GetValidMap(NULL, &map2);
 	assert(err == ERR_OK);
 
-	map1->entities[0].brushes[0].facesCount--;
+	map1.entities[0].brushes[0].facesCount--;
 
-	ASSERT(MapCompare(map1, map2) < 0, "Expected both maps to not be equal.\n");
+	ASSERT(MapCompare(&map1, &map2) != 0,
+	       "Expected both maps to not be equal.\n");
+
+	map1.entities[0].brushes[0].facesCount++;
+
+	MapFree(&map1);
+	MapFree(&map2);
 }
 
 /* Test the negative equality of maps. */
-static void TestMapCompare5()
+void TestMapCompare5()
 {
-	Map *map1, *map2;
+	Map map1, map2;
 
 	Error err = GetValidMap(NULL, &map1);
 	assert(err == ERR_OK);
-
 	err = GetValidMap(NULL, &map2);
 	assert(err == ERR_OK);
 
-	map1->entities[0].brushes[0].faces[0].points[0] = -9000.0f;
+	map1.entities[0].brushes[0].faces[0].points[0] = -9000.0f;
 
-	ASSERT(MapCompare(map1, map2) != 0, "Expected both maps to not be equal\n");
+	ASSERT(MapCompare(&map1, &map2) != 0,
+	       "Expected both maps to not be equal\n");
 
-	DisposeMap(NULL, map1);
-	DisposeMap(NULL, map2);
+	MapFree(&map1);
+	MapFree(&map2);
 }
 
 /* Test the negative equality of maps. */
-static void TestMapCompare6()
+void TestMapCompare6()
 {
-	Map *map1, *map2;
+	Map map1, map2;
 
 	Error err = GetValidMap(NULL, &map1);
 	assert(err == ERR_OK);
-
 	err = GetValidMap(NULL, &map2);
 	assert(err == ERR_OK);
 
-	char *tmp = map1->entities[0].brushes[0].faces[0].texture.name;
-	map1->entities[0].brushes[0].faces[0].texture.name = "potato";
+	char *tmp = map1.entities[0].brushes[0].faces[0].texture.name;
+	map1.entities[0].brushes[0].faces[0].texture.name = "potato";
 
-	ASSERT(MapCompare(map1, map2) != 0, "Expected both maps to not be equal\n");
+	ASSERT(MapCompare(&map1, &map2) != 0,
+	       "Expected both maps to not be equal\n");
 
-	map1->entities[0].brushes[0].faces[0].texture.name = tmp;
-	DisposeMap(NULL, map1);
-	DisposeMap(NULL, map2);
+	map1.entities[0].brushes[0].faces[0].texture.name = tmp;
+
+	MapFree(&map1);
+	MapFree(&map2);
 }
 
 /* Test the Quake notation. */
-static void TestSuccessfulParse1()
+void TestSuccessfulParse1()
 {
-	MapFace face1 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face2 = {{256, 0, 0, 256, 0, 1, 256, 1, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face3 = {{0, 128, 0, 0, 128, 1, 1, 128, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face4 = {{0, 384, 0, 1, 384, 0, 0, 384, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face5 = {{0, 0, 64, 1, 0, 64, 0, 1, 64}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face6 = {{0, 0, 128, 0, 1, 128, 1, 0, 128}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face7 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face8 = {{256, 0, 0, 256, 0, 1, 256, 1, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face9 = {{0, 128, 0, 0, 128, 1, 1, 128, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face10 = {{0, 384, 0, 1, 384, 0, 0, 384, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face11 = {{0, 0, 64, 1, 0, 64, 0, 1, 64}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face12 = {{0, 0, 128, 0, 1, 128, 1, 0, 128}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face1 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face2 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face3 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face4 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face5 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face6 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face7 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face8 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face9 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face10 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
+			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face11 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
+			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face12 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
+			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
 
+	Error err;
 	Dictionary *attributes1 = DictionaryInit(0);
-	DictionarySet(attributes1, "sounds", "1");
-	DictionarySet(attributes1, "classname", "worldspawn");
-	DictionarySet(attributes1, "wad", "/gfx/base.wad");
-	DictionarySet(attributes1, "worldtype", "0");
+	err = DictionarySet(attributes1, "sounds", "1");
+	assert(err == ERR_OK);
+	err = DictionarySet(attributes1, "classname", "worldspawn");
+	assert(err == ERR_OK);
+	err = DictionarySet(attributes1, "wad", "/gfx/base.wad");
+	assert(err == ERR_OK);
+	err = DictionarySet(attributes1, "worldtype", "0");
+	assert(err == ERR_OK);
 
 	Dictionary *attributes2 = DictionaryInit(0);
-	assert(DictionarySet(attributes1, "classname", "info_player_start") == ERR_OK);
-	assert(DictionarySet(attributes1, "origin", "256 384 160") == ERR_OK);
+	DictionarySet(attributes2, "classname", "info_player_start");
+	assert(err == ERR_OK);
+	DictionarySet(attributes2, "origin", "256 384 160");
+	assert(err == ERR_OK);
 
 	MapBrush brush1 = {(MapFace[]){face1, face2, face3, face4, face5, face6}, 6, 6 * sizeof(MapFace)};
 	MapBrush brush2 = {(MapFace[]){face7, face8, face9, face10, face11, face12}, 6, 6 * sizeof(MapFace)};
@@ -419,47 +434,68 @@ static void TestSuccessfulParse1()
 	MapEntity entity1 = {attributes1, (MapBrush[]){brush1, brush2}, 2, 2 * sizeof(MapBrush)};
 	MapEntity entity2 = {attributes2, (MapBrush[]){}, 0, 0};
 
-	Map *map1 = &(Map){(MapEntity[]){entity1, entity2}, 2, 2 * sizeof(MapEntity)};
-	Map *map2;
+	Map map1 = (Map){(MapEntity[]){entity1, entity2}, 2, 2 * sizeof(MapEntity)};
+	Map map2;
 
 	FILE *source;
-	assert(GetValidMap(&source, NULL) == ERR_OK);
-	assert(MapParse(&map2, source) == ERR_OK);
+	err = GetValidMap(&source, NULL);
+	assert(err == ERR_OK);
+	err = MapParse(&map2, source);
+	assert(err == ERR_OK);
 	fclose(source);
 
-	ASSERT(MapCompare(map1, map2) == 0,
+	ASSERT(MapCompare(&map1, &map2) == 0,
 	       "Expected both maps to be equal.\n");
 
-	MapFree(map2);
+	MapFree(&map2);
 	DictionaryFree(attributes1);
 	DictionaryFree(attributes2);
 }
 
 /* Test the Half-Life notation. */
-static void TestSuccessfulParse2()
+void TestSuccessfulParse2()
 {
-	MapFace face1 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face2 = {{256, 0, 0, 256, 0, 1, 256, 1, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face3 = {{0, 128, 0, 0, 128, 1, 1, 128, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face4 = {{0, 384, 0, 1, 384, 0, 0, 384, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face5 = {{0, 0, 64, 1, 0, 64, 0, 1, 64}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face6 = {{0, 0, 128, 0, 1, 128, 1, 0, 128}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face7 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face8 = {{256, 0, 0, 256, 0, 1, 256, 1, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face9 = {{0, 128, 0, 0, 128, 1, 1, 128, 0}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face10 = {{0, 384, 0, 1, 384, 0, 0, 384, 1}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face11 = {{0, 0, 64, 1, 0, 64, 0, 1, 64}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face12 = {{0, 0, 128, 0, 1, 128, 1, 0, 128}, {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face1 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face2 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face3 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face4 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face5 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face6 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face7 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face8 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face9 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
+			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face10 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
+			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face11 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
+			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face12 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
+			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
 
+	Error err;
 	Dictionary *attributes1 = DictionaryInit(0);
-	DictionarySet(attributes1, "sounds", "1");
-	DictionarySet(attributes1, "classname", "worldspawn");
-	DictionarySet(attributes1, "wad", "/gfx/base.wad");
-	DictionarySet(attributes1, "worldtype", "0");
+	err = DictionarySet(attributes1, "sounds", "1");
+	assert(err == ERR_OK);
+	err = DictionarySet(attributes1, "classname", "worldspawn");
+	assert(err == ERR_OK);
+	err = DictionarySet(attributes1, "wad", "/gfx/base.wad");
+	assert(err == ERR_OK);
+	err = DictionarySet(attributes1, "worldtype", "0");
+	assert(err == ERR_OK);
 
 	Dictionary *attributes2 = DictionaryInit(0);
-	assert(DictionarySet(attributes1, "classname", "info_player_start") == ERR_OK);
-	assert(DictionarySet(attributes1, "origin", "256 384 160") == ERR_OK);
+	DictionarySet(attributes2, "classname", "info_player_start");
+	assert(err == ERR_OK);
+	DictionarySet(attributes2, "origin", "256 384 160");
+	assert(err == ERR_OK);
 
 	MapBrush brush1 = {(MapFace[]){face1, face2, face3, face4, face5, face6}, 6, 6 * sizeof(MapFace)};
 	MapBrush brush2 = {(MapFace[]){face7, face8, face9, face10, face11, face12}, 6, 6 * sizeof(MapFace)};
@@ -468,26 +504,29 @@ static void TestSuccessfulParse2()
 	MapEntity entity1 = {attributes1, (MapBrush[]){brush1, brush2}, 2, 2 * sizeof(MapBrush)};
 	MapEntity entity2 = {attributes2, (MapBrush[]){}, 0, 0};
 
-	Map *map1 = &(Map){(MapEntity[]){entity1, entity2}, 2, 2 * sizeof(MapEntity)};
-	Map *map2;
+	Map map1 = (Map){(MapEntity[]){entity1, entity2}, 2, 2 * sizeof(MapEntity)};
+	Map map2;
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", validSource2) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	assert(MapParse(&map2, source) == ERR_OK);
+	err = fprintf(source, "%s", validSource2);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	err = MapParse(&map2, source);
+	assert(err == ERR_OK);
 	fclose(source);
 
-	ASSERT(MapCompare(map1, map2) == 0,
+	ASSERT(MapCompare(&map1, &map2) == 0,
 	       "Expected both maps to be equal.\n");
 
-	MapFree(map2);
+	MapFree(&map2);
 	DictionaryFree(attributes1);
 	DictionaryFree(attributes2);
 }
 
 /* Missing outer braces. */
-static void TestFailedParse1()
+void TestFailedParse1()
 {
 	const char *invalidSource = "\"classname\" \"worldspawn\"\n"
 		"\"mapversion\" \"220\"\n"
@@ -497,16 +536,18 @@ static void TestFailedParse1()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
 
 /* Missing bracket. */
-static void TestFailedParse2()
+void TestFailedParse2()
 {
 	const char *invalidSource = "{\n"
 		"\"classname\" \"worldspawn\"\n"
@@ -519,16 +560,18 @@ static void TestFailedParse2()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
 
 /* Extra-closing braces. */
-static void TestFailedParse3()
+void TestFailedParse3()
 {
 	const char *invalidSource = "{\n"
 		"\"classname\" \"worldspawn\"\n"
@@ -542,16 +585,18 @@ static void TestFailedParse3()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
 
 /* Non-numeric values for coordinates. */
-static void TestFailedParse4()
+void TestFailedParse4()
 {
 	const char *invalidSource = "{\n"
 		"\"classname\" \"worldspawn\"\n"
@@ -564,16 +609,18 @@ static void TestFailedParse4()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
 
 /* Incorrect vector length. */
-static void TestFailedParse5()
+void TestFailedParse5()
 {
 	const char *invalidSource = "{\n"
 		"\"classname\" \"worldspawn\"\n"
@@ -586,16 +633,18 @@ static void TestFailedParse5()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
 
 /* Extra field. */
-static void TestFailedParse6()
+void TestFailedParse6()
 {
 	const char *invalidSource = "{\n"
 		"\"classname\" \"worldspawn\"\n"
@@ -609,16 +658,18 @@ static void TestFailedParse6()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
 
 /* Mismatched attributes. */
-static void TestFailedParse7()
+void TestFailedParse7()
 {
 	const char *invalidSource = "{\n"
 		"\"classname\" \"worldspawn\"\n"
@@ -635,10 +686,12 @@ static void TestFailedParse7()
 
 	FILE *source = tmpfile();
 	assert(source != NULL);
-	assert(fprintf(source, "%s", invalidSource) != -1);
-	assert(fseek(source, 0, SEEK_SET) == 0);
-	Map *map;
-	ASSERT(MapParse(&map, source) != ERR_OK,
+	Error err = fprintf(source, "%s", invalidSource);
+	assert(err != -1);
+	err = fseek(source, 0, SEEK_SET);
+	assert(err == 0);
+	Map map;
+	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
