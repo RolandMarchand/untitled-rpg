@@ -26,7 +26,7 @@ static void TestInitialization()
 
 	/* Test initializing with default size. */
 	ASSERT(dict->capacity == DICTIONARY_DEFAULT_CAPACITY,
-	       "Wrong default size for new dictionaries. Expected %d, got %lu.\n",
+	       "Wrong default size for new dictionaries. Expected %d, got %zu.\n",
 	       DICTIONARY_DEFAULT_CAPACITY, dict->capacity);
 	DictionaryFree(dict);
 
@@ -34,7 +34,7 @@ static void TestInitialization()
 		size_t size = rand() % LARGE_DATASET_SIZE;
 		dict = DictionaryInit(size);
 		ASSERT(dict->capacity == size,
-		       "Wrong default size for new dictionaries. Expected %d, got %lu.\n",
+		       "Wrong default size for new dictionaries. Expected %d, got %zu.\n",
 		       DICTIONARY_DEFAULT_CAPACITY, dict->capacity);
 		DictionaryFree(dict);
 	}
@@ -53,11 +53,11 @@ static void TestInsertion()
 	       ERROR_TO_STRING(err));
 
 	ASSERT(dict->count == 1,
-	       "Wrong count set, expected 1, got %lu.\n", dict->count);
+	       "Wrong count set, expected 1, got %zu.\n", dict->count);
 
 	int written = DictionaryGet(dict, "key1", buf, MAX);
 	ASSERT(written == strlen("value1"),
-	       "Unable to fill buffer with value. Expected %ld writes, got %d writes.\n",
+	       "Unable to fill buffer with value. Expected %zd writes, got %d writes.\n",
 	       strlen("value1"), written);
 
 	ASSERT(strcmp(buf, "value1") == 0,
@@ -84,7 +84,7 @@ static void TestLargeDataset()
 	}
 
 	ASSERT(dict->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict->count);
 
 	for (size_t i = 0; i < LARGE_DATASET_SIZE; i++) {
@@ -94,7 +94,7 @@ static void TestLargeDataset()
 		char buf[MAX];
 		int written = DictionaryGet(dict, key, buf, MAX);
 		ASSERT(written == strlen(value),
-		       "Unable to fill buffer with value. Expected %ld writes, got %d writes.\n",
+		       "Unable to fill buffer with value. Expected %zd writes, got %d writes.\n",
 		       strlen(value), written);
 		ASSERT(strcmp(buf, value) == 0,
 		       "Wrong value read for key %zu. Expected '%s', got '%s'.\n", i, value, buf);
@@ -119,7 +119,7 @@ static void TestDeletion()
 	ASSERT(err == ERR_OK, "Error %s upon erasing a dictionary entry.\n",
 	       ERROR_TO_STRING(err));
 
-	ASSERT(dict->count == 0, "Wrong count set, expected 0, got %lu.\n",
+	ASSERT(dict->count == 0, "Wrong count set, expected 0, got %zu.\n",
 	       dict->count);
 
 	DictionaryFree(dict);
@@ -140,7 +140,7 @@ static void TestStressDeletion()
 		ASSERT(err == ERR_OK, "%s upon setting a dictionary entry.\n",
 		       ERROR_TO_STRING(err));
 		ASSERT(dict->count == i + 1,
-		       "expected the count to be of %lu, got %lu\n",
+		       "expected the count to be of %zu, got %zu\n",
 		       i + 1, dict->count);
 	}
 
@@ -152,12 +152,12 @@ static void TestStressDeletion()
 		       ERROR_TO_STRING(err));
 		size_t expected = LARGE_DATASET_SIZE - (i + 2) / 2;
 		ASSERT(dict->count == expected,
-		       "expected the count to be of %lu, got %lu\n",
+		       "expected the count to be of %zu, got %zu\n",
 		       expected, dict->count);
 	}
 
 	ASSERT(dict->count == LARGE_DATASET_SIZE / 2,
-	       "Wrong count after stress deletion, expected %d, got %lu.\n",
+	       "Wrong count after stress deletion, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE / 2, dict->count);
 
 	/* Verify remaining entries */
@@ -168,7 +168,7 @@ static void TestStressDeletion()
 		char buf[MAX];
 		int written = DictionaryGet(dict, key, buf, MAX);
 		ASSERT(written == strlen(value),
-		       "Unable to fill buffer with value. Expected %ld writes, got %d writes.\n",
+		       "Unable to fill buffer with value. Expected %zd writes, got %d writes.\n",
 		       strlen(value), written);
 		ASSERT(strcmp(buf, value) == 0,
 		       "Wrong value read for key %zu. Expected '%s', got '%s'.\n",
@@ -204,7 +204,7 @@ static void TestGettingAllKeys()
 	}
 
 	ASSERT(dict->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict->count);
 
 	/* Get all keys. */
@@ -247,7 +247,7 @@ static void TestGettingAllValues()
 	}
 
 	ASSERT(dict->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict->count);
 
 	/* Get all keys. */
@@ -290,7 +290,7 @@ static void TestDuplication()
 	}
 
 	ASSERT(dict->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict->count);
 
 	Dictionary *dictDup = DictionaryDuplicate(dict);
@@ -349,10 +349,10 @@ static void TestComparisonsTrue()
 	}
 
 	ASSERT(dict1->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict1->count);
 	ASSERT(dict2->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict2->count);
 
 	ASSERT(DictionaryCompare(dict1, dict2),
@@ -387,10 +387,10 @@ static void TestComparisonsFalse1()
 	DictionarySet(dict1, "0key", "0value0");
 
 	ASSERT(dict1->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict1->count);
 	ASSERT(dict2->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict2->count);
 
 	ASSERT(!DictionaryCompare(dict1, dict2),
@@ -422,10 +422,10 @@ static void TestComparisonsFalse2()
 	}
 
 	ASSERT(dict1->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict1->count);
 	ASSERT(dict2->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict2->count);
 
 	/* Ruin the equality. */
@@ -460,10 +460,10 @@ static void TestComparisonsFalse3()
 	}
 
 	ASSERT(dict1->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict1->count);
 	ASSERT(dict2->count == LARGE_DATASET_SIZE,
-	       "Wrong count set for large dataset, expected %d, got %lu.\n",
+	       "Wrong count set for large dataset, expected %d, got %zu.\n",
 	       LARGE_DATASET_SIZE, dict2->count);
 
 	/* Ruin the equality. */

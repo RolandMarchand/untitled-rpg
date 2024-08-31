@@ -68,15 +68,10 @@ const char *validSource2 = "{\n"
 
 int MapCompare(Map *a, Map *b)
 {
-	assert(a != NULL);
-	assert(b != NULL);
-
 	if (a == b) {
 		return 0;
 	}
 
-	assert(a->entities != NULL);
-	assert(a->entities != NULL);
 	if (a->entities == b->entities) {
 		return 0;
 	}
@@ -92,8 +87,6 @@ int MapCompare(Map *a, Map *b)
 	for (size_t i = 0; i < a->entitiesCount; i++) {
 		aEnt = &a->entities[i];
 		bEnt = &b->entities[i];
-		assert(aEnt != NULL);
-		assert(bEnt != NULL);
 
 		if (aEnt == bEnt) {
 			continue;
@@ -118,8 +111,6 @@ int MapCompare(Map *a, Map *b)
 		for (size_t j = 0; j < aEnt->brushesCount; j++) {
 			aBr = &aEnt->brushes[j];
 			bBr = &bEnt->brushes[j];
-			assert(aBr != NULL);
-			assert(bBr != NULL);
 
 			if (aBr == bBr) {
 				continue;
@@ -144,10 +135,6 @@ int MapCompare(Map *a, Map *b)
 				bFa = &bBr->faces[k];
 				aTex = &aFa->texture;
 				bTex = &bFa->texture;
-				assert(aFa != NULL);
-				assert(bFa != NULL);
-				assert(aTex != NULL);
-				assert(bTex != NULL);
 
 				if (aFa == bFa) {
 					continue;
@@ -240,7 +227,7 @@ Error GetValidMap(FILE **fileOut, Map *mapOut)
 	assert(err != -1);
 	err = fseek(tmpFile, 0, SEEK_SET);
 	assert(err == 0);
-	
+
 	Map tmpMap;
 	err = MapParse(&tmpMap, tmpFile);
 	assert(err == ERR_OK);
@@ -257,7 +244,7 @@ Error GetValidMap(FILE **fileOut, Map *mapOut)
 	} else {
 		MapFree(&tmpMap);
 	}
-	
+
 	return ERR_OK;
 }
 
@@ -385,30 +372,281 @@ void TestMapCompare6()
 /* Test the Quake notation. */
 void TestSuccessfulParse1()
 {
-	MapFace face1 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face2 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face3 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face4 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face5 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face6 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face7 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face8 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face9 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face10 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
-			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face11 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
-			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face12 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
-			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face1;
+	face1.points[POINT_1_X] = -128;
+	face1.points[POINT_1_Y] = 0;
+	face1.points[POINT_1_Z] = 0;
+	face1.points[POINT_2_X] = 128.2;
+	face1.points[POINT_2_Y] = -1;
+	face1.points[POINT_2_Z] = 0;
+	face1.points[POINT_3_X] = 128;
+	face1.points[POINT_3_Y] = 0;
+	face1.points[POINT_3_Z] = 1;
+	face1.texture.name = "GROUND1_6";
+	face1.texture.uAxis[AXIS_X] = 1;
+	face1.texture.uAxis[AXIS_Y] = 0;
+	face1.texture.uAxis[AXIS_Z] = 0;
+	face1.texture.vAxis[AXIS_X] = 0;
+	face1.texture.vAxis[AXIS_Y] = -1;
+	face1.texture.vAxis[AXIS_Z] = 0;
+	face1.texture.offsetX = 0;
+	face1.texture.offsetY = 0;
+	face1.texture.rotation = 0;
+	face1.texture.scaleX = 1;
+	face1.texture.scaleY = 1;
+
+	MapFace face2;
+	face2.points[POINT_1_X] = 256;
+	face2.points[POINT_1_Y] = 0;
+	face2.points[POINT_1_Z] = 0;
+	face2.points[POINT_2_X] = 256;
+	face2.points[POINT_2_Y] = 0;
+	face2.points[POINT_2_Z] = 1;
+	face2.points[POINT_3_X] = 256;
+	face2.points[POINT_3_Y] = 1;
+	face2.points[POINT_3_Z] = 0;
+	face2.texture.name = "GROUND1_6";
+	face2.texture.uAxis[AXIS_X] = 1;
+	face2.texture.uAxis[AXIS_Y] = 0;
+	face2.texture.uAxis[AXIS_Z] = 0;
+	face2.texture.vAxis[AXIS_X] = 0;
+	face2.texture.vAxis[AXIS_Y] = -1;
+	face2.texture.vAxis[AXIS_Z] = 0;
+	face2.texture.offsetX = 0;
+	face2.texture.offsetY = 0;
+	face2.texture.rotation = 0;
+	face2.texture.scaleX = 1;
+	face2.texture.scaleY = 1;
+
+	MapFace face3;
+	face3.points[POINT_1_X] = 0;
+	face3.points[POINT_1_Y] = 128;
+	face3.points[POINT_1_Z] = 0;
+	face3.points[POINT_2_X] = 0;
+	face3.points[POINT_2_Y] = 128;
+	face3.points[POINT_2_Z] = 1;
+	face3.points[POINT_3_X] = 1;
+	face3.points[POINT_3_Y] = 128;
+	face3.points[POINT_3_Z] = 0;
+	face3.texture.name = "GROUND1_6";
+	face3.texture.uAxis[AXIS_X] = 1;
+	face3.texture.uAxis[AXIS_Y] = 0;
+	face3.texture.uAxis[AXIS_Z] = 0;
+	face3.texture.vAxis[AXIS_X] = 0;
+	face3.texture.vAxis[AXIS_Y] = -1;
+	face3.texture.vAxis[AXIS_Z] = 0;
+	face3.texture.offsetX = 0;
+	face3.texture.offsetY = 0;
+	face3.texture.rotation = 0;
+	face3.texture.scaleX = 1;
+	face3.texture.scaleY = 1;
+
+	MapFace face4;
+	face4.points[POINT_1_X] = 0;
+	face4.points[POINT_1_Y] = 384;
+	face4.points[POINT_1_Z] = 0;
+	face4.points[POINT_2_X] = 1;
+	face4.points[POINT_2_Y] = 384;
+	face4.points[POINT_2_Z] = 0;
+	face4.points[POINT_3_X] = 0;
+	face4.points[POINT_3_Y] = 384;
+	face4.points[POINT_3_Z] = 1;
+	face4.texture.name = "GROUND1_6";
+	face4.texture.uAxis[AXIS_X] = 1;
+	face4.texture.uAxis[AXIS_Y] = 0;
+	face4.texture.uAxis[AXIS_Z] = 0;
+	face4.texture.vAxis[AXIS_X] = 0;
+	face4.texture.vAxis[AXIS_Y] = -1;
+	face4.texture.vAxis[AXIS_Z] = 0;
+	face4.texture.offsetX = 0;
+	face4.texture.offsetY = 0;
+	face4.texture.rotation = 0;
+	face4.texture.scaleX = 1;
+	face4.texture.scaleY = 1;
+
+	MapFace face5;
+	face5.points[POINT_1_X] = 0;
+	face5.points[POINT_1_Y] = 0;
+	face5.points[POINT_1_Z] = 64;
+	face5.points[POINT_2_X] = 1;
+	face5.points[POINT_2_Y] = 0;
+	face5.points[POINT_2_Z] = 64;
+	face5.points[POINT_3_X] = 0;
+	face5.points[POINT_3_Y] = 1;
+	face5.points[POINT_3_Z] = 64;
+	face5.texture.name = "GROUND1_6";
+	face5.texture.uAxis[AXIS_X] = 1;
+	face5.texture.uAxis[AXIS_Y] = 0;
+	face5.texture.uAxis[AXIS_Z] = 0;
+	face5.texture.vAxis[AXIS_X] = 0;
+	face5.texture.vAxis[AXIS_Y] = -1;
+	face5.texture.vAxis[AXIS_Z] = 0;
+	face5.texture.offsetX = 0;
+	face5.texture.offsetY = 0;
+	face5.texture.rotation = 0;
+	face5.texture.scaleX = 1;
+	face5.texture.scaleY = 1;
+
+	MapFace face6;
+	face6.points[POINT_1_X] = 0;
+	face6.points[POINT_1_Y] = 0;
+	face6.points[POINT_1_Z] = 128;
+	face6.points[POINT_2_X] = 0;
+	face6.points[POINT_2_Y] = 1;
+	face6.points[POINT_2_Z] = 128;
+	face6.points[POINT_3_X] = 1;
+	face6.points[POINT_3_Y] = 0;
+	face6.points[POINT_3_Z] = 128;
+	face6.texture.name = "GROUND1_6";
+	face6.texture.uAxis[AXIS_X] = 1;
+	face6.texture.uAxis[AXIS_Y] = 0;
+	face6.texture.uAxis[AXIS_Z] = 0;
+	face6.texture.vAxis[AXIS_X] = 0;
+	face6.texture.vAxis[AXIS_Y] = -1;
+	face6.texture.vAxis[AXIS_Z] = 0;
+	face6.texture.offsetX = 0;
+	face6.texture.offsetY = 0;
+	face6.texture.rotation = 0;
+	face6.texture.scaleX = 1;
+	face6.texture.scaleY = 1;
+
+	MapFace face7;
+	face7.points[POINT_1_X] = -128;
+	face7.points[POINT_1_Y] = 0;
+	face7.points[POINT_1_Z] = 0;
+	face7.points[POINT_2_X] = 128.2;
+	face7.points[POINT_2_Y] = -1;
+	face7.points[POINT_2_Z] = 0;
+	face7.points[POINT_3_X] = 128;
+	face7.points[POINT_3_Y] = 0;
+	face7.points[POINT_3_Z] = 1;
+	face7.texture.name = "GROUND1_6";
+	face7.texture.uAxis[AXIS_X] = 1;
+	face7.texture.uAxis[AXIS_Y] = 0;
+	face7.texture.uAxis[AXIS_Z] = 0;
+	face7.texture.vAxis[AXIS_X] = 0;
+	face7.texture.vAxis[AXIS_Y] = -1;
+	face7.texture.vAxis[AXIS_Z] = 0;
+	face7.texture.offsetX = 0;
+	face7.texture.offsetY = 0;
+	face7.texture.rotation = 0;
+	face7.texture.scaleX = 1;
+	face7.texture.scaleY = 1;
+
+	MapFace face8;
+	face8.points[POINT_1_X] = 256;
+	face8.points[POINT_1_Y] = 0;
+	face8.points[POINT_1_Z] = 0;
+	face8.points[POINT_2_X] = 256;
+	face8.points[POINT_2_Y] = 0;
+	face8.points[POINT_2_Z] = 1;
+	face8.points[POINT_3_X] = 256;
+	face8.points[POINT_3_Y] = 1;
+	face8.points[POINT_3_Z] = 0;
+	face8.texture.name = "GROUND1_6";
+	face8.texture.uAxis[AXIS_X] = 1;
+	face8.texture.uAxis[AXIS_Y] = 0;
+	face8.texture.uAxis[AXIS_Z] = 0;
+	face8.texture.vAxis[AXIS_X] = 0;
+	face8.texture.vAxis[AXIS_Y] = -1;
+	face8.texture.vAxis[AXIS_Z] = 0;
+	face8.texture.offsetX = 0;
+	face8.texture.offsetY = 0;
+	face8.texture.rotation = 0;
+	face8.texture.scaleX = 1;
+	face8.texture.scaleY = 1;
+
+	MapFace face9;
+	face9.points[POINT_1_X] = 0;
+	face9.points[POINT_1_Y] = 128;
+	face9.points[POINT_1_Z] = 0;
+	face9.points[POINT_2_X] = 0;
+	face9.points[POINT_2_Y] = 128;
+	face9.points[POINT_2_Z] = 1;
+	face9.points[POINT_3_X] = 1;
+	face9.points[POINT_3_Y] = 128;
+	face9.points[POINT_3_Z] = 0;
+	face9.texture.name = "GROUND1_6";
+	face9.texture.uAxis[AXIS_X] = 1;
+	face9.texture.uAxis[AXIS_Y] = 0;
+	face9.texture.uAxis[AXIS_Z] = 0;
+	face9.texture.vAxis[AXIS_X] = 0;
+	face9.texture.vAxis[AXIS_Y] = -1;
+	face9.texture.vAxis[AXIS_Z] = 0;
+	face9.texture.offsetX = 0;
+	face9.texture.offsetY = 0;
+	face9.texture.rotation = 0;
+	face9.texture.scaleX = 1;
+	face9.texture.scaleY = 1;
+
+	MapFace face10;
+	face10.points[POINT_1_X] = 0;
+	face10.points[POINT_1_Y] = 384;
+	face10.points[POINT_1_Z] = 0;
+	face10.points[POINT_2_X] = 1;
+	face10.points[POINT_2_Y] = 384;
+	face10.points[POINT_2_Z] = 0;
+	face10.points[POINT_3_X] = 0;
+	face10.points[POINT_3_Y] = 384;
+	face10.points[POINT_3_Z] = 1;
+	face10.texture.name = "GROUND1_6";
+	face10.texture.uAxis[AXIS_X] = 1;
+	face10.texture.uAxis[AXIS_Y] = 0;
+	face10.texture.uAxis[AXIS_Z] = 0;
+	face10.texture.vAxis[AXIS_X] = 0;
+	face10.texture.vAxis[AXIS_Y] = -1;
+	face10.texture.vAxis[AXIS_Z] = 0;
+	face10.texture.offsetX = 0;
+	face10.texture.offsetY = 0;
+	face10.texture.rotation = 0;
+	face10.texture.scaleX = 1;
+	face10.texture.scaleY = 1;
+
+	MapFace face11;
+	face11.points[POINT_1_X] = 0;
+	face11.points[POINT_1_Y] = 0;
+	face11.points[POINT_1_Z] = 64;
+	face11.points[POINT_2_X] = 1;
+	face11.points[POINT_2_Y] = 0;
+	face11.points[POINT_2_Z] = 64;
+	face11.points[POINT_3_X] = 0;
+	face11.points[POINT_3_Y] = 1;
+	face11.points[POINT_3_Z] = 64;
+	face11.texture.name = "GROUND1_6";
+	face11.texture.uAxis[AXIS_X] = 1;
+	face11.texture.uAxis[AXIS_Y] = 0;
+	face11.texture.uAxis[AXIS_Z] = 0;
+	face11.texture.vAxis[AXIS_X] = 0;
+	face11.texture.vAxis[AXIS_Y] = -1;
+	face11.texture.vAxis[AXIS_Z] = 0;
+	face11.texture.offsetX = 0;
+	face11.texture.offsetY = 0;
+	face11.texture.rotation = 0;
+	face11.texture.scaleX = 1;
+	face11.texture.scaleY = 1;
+
+	MapFace face12;
+	face12.points[POINT_1_X] = 0;
+	face12.points[POINT_1_Y] = 0;
+	face12.points[POINT_1_Z] = 128;
+	face12.points[POINT_2_X] = 0;
+	face12.points[POINT_2_Y] = 1;
+	face12.points[POINT_2_Z] = 128;
+	face12.points[POINT_3_X] = 1;
+	face12.points[POINT_3_Y] = 0;
+	face12.points[POINT_3_Z] = 128;
+	face12.texture.name = "GROUND1_6";
+	face12.texture.uAxis[AXIS_X] = 1;
+	face12.texture.uAxis[AXIS_Y] = 0;
+	face12.texture.uAxis[AXIS_Z] = 0;
+	face12.texture.vAxis[AXIS_X] = 0;
+	face12.texture.vAxis[AXIS_Y] = -1;
+	face12.texture.vAxis[AXIS_Z] = 0;
+	face12.texture.offsetX = 0;
+	face12.texture.offsetY = 0;
+	face12.texture.rotation = 0;
+	face12.texture.scaleX = 1;
+	face12.texture.scaleY = 1;
 
 	Error err;
 	Dictionary *attributes1 = DictionaryInit(0);
@@ -427,14 +665,40 @@ void TestSuccessfulParse1()
 	DictionarySet(attributes2, "origin", "256 384 160");
 	assert(err == ERR_OK);
 
-	MapBrush brush1 = {(MapFace[]){face1, face2, face3, face4, face5, face6}, 6, 6 * sizeof(MapFace)};
-	MapBrush brush2 = {(MapFace[]){face7, face8, face9, face10, face11, face12}, 6, 6 * sizeof(MapFace)};
-	MapBrush brush3 = {(MapFace[]){}, 0, 0};
+	MapFace faces1[] = {face1, face2, face3, face4, face5, face6};
+	MapFace faces2[] = {face7, face8, face9, face10, face11, face12};
 
-	MapEntity entity1 = {attributes1, (MapBrush[]){brush1, brush2}, 2, 2 * sizeof(MapBrush)};
-	MapEntity entity2 = {attributes2, (MapBrush[]){}, 0, 0};
+	MapBrush brush1;
+	brush1.faces = faces1;
+	brush1.facesCount = 6;
+	brush1.facesSize = 6 * sizeof(MapFace);
 
-	Map map1 = (Map){(MapEntity[]){entity1, entity2}, 2, 2 * sizeof(MapEntity)};
+	MapBrush brush2;
+	brush2.faces = faces2;
+	brush2.facesCount = 6;
+	brush2.facesSize = 6 * sizeof(MapFace);
+
+	MapBrush brushes[] = {brush1, brush2};
+
+	MapEntity entity1;
+	entity1.attributes = attributes1;
+	entity1.brushes = brushes;
+	entity1.brushesCount = 2;
+	entity1.brushesSize = 2 * sizeof(MapBrush);
+
+	MapEntity entity2;
+	entity2.attributes = attributes2;
+	entity2.brushes = NULL;
+	entity2.brushesCount = 0;
+	entity2.brushesSize = 0;
+
+	MapEntity entities[] = {entity1, entity2};
+
+	Map map1;
+	map1.entities = entities;
+	map1.entitiesCount = 2;
+	map1.entitiesSize = 2 * sizeof(MapEntity);
+
 	Map map2;
 
 	FILE *source;
@@ -455,30 +719,281 @@ void TestSuccessfulParse1()
 /* Test the Half-Life notation. */
 void TestSuccessfulParse2()
 {
-	MapFace face1 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face2 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face3 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face4 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face5 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face6 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face7 = {{-128, 0, 0, 128.2, -1, 0, 128, 0, 1},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face8 = {{256, 0, 0, 256, 0, 1, 256, 1, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face9 = {{0, 128, 0, 0, 128, 1, 1, 128, 0},
-			 {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face10 = {{0, 384, 0, 1, 384, 0, 0, 384, 1},
-			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face11 = {{0, 0, 64, 1, 0, 64, 0, 1, 64},
-			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
-	MapFace face12 = {{0, 0, 128, 0, 1, 128, 1, 0, 128},
-			  {"GROUND1_6", {1, 0, 0}, {0, -1, 0}, 0, 0, 0, 1, 1}};
+	MapFace face1;
+	face1.points[POINT_1_X] = -128;
+	face1.points[POINT_1_Y] = 0;
+	face1.points[POINT_1_Z] = 0;
+	face1.points[POINT_2_X] = 128.2;
+	face1.points[POINT_2_Y] = -1;
+	face1.points[POINT_2_Z] = 0;
+	face1.points[POINT_3_X] = 128;
+	face1.points[POINT_3_Y] = 0;
+	face1.points[POINT_3_Z] = 1;
+	face1.texture.name = "GROUND1_6";
+	face1.texture.uAxis[AXIS_X] = 1;
+	face1.texture.uAxis[AXIS_Y] = 0;
+	face1.texture.uAxis[AXIS_Z] = 0;
+	face1.texture.vAxis[AXIS_X] = 0;
+	face1.texture.vAxis[AXIS_Y] = -1;
+	face1.texture.vAxis[AXIS_Z] = 0;
+	face1.texture.offsetX = 0;
+	face1.texture.offsetY = 0;
+	face1.texture.rotation = 0;
+	face1.texture.scaleX = 1;
+	face1.texture.scaleY = 1;
+
+	MapFace face2;
+	face2.points[POINT_1_X] = 256;
+	face2.points[POINT_1_Y] = 0;
+	face2.points[POINT_1_Z] = 0;
+	face2.points[POINT_2_X] = 256;
+	face2.points[POINT_2_Y] = 0;
+	face2.points[POINT_2_Z] = 1;
+	face2.points[POINT_3_X] = 256;
+	face2.points[POINT_3_Y] = 1;
+	face2.points[POINT_3_Z] = 0;
+	face2.texture.name = "GROUND1_6";
+	face2.texture.uAxis[AXIS_X] = 1;
+	face2.texture.uAxis[AXIS_Y] = 0;
+	face2.texture.uAxis[AXIS_Z] = 0;
+	face2.texture.vAxis[AXIS_X] = 0;
+	face2.texture.vAxis[AXIS_Y] = -1;
+	face2.texture.vAxis[AXIS_Z] = 0;
+	face2.texture.offsetX = 0;
+	face2.texture.offsetY = 0;
+	face2.texture.rotation = 0;
+	face2.texture.scaleX = 1;
+	face2.texture.scaleY = 1;
+
+	MapFace face3;
+	face3.points[POINT_1_X] = 0;
+	face3.points[POINT_1_Y] = 128;
+	face3.points[POINT_1_Z] = 0;
+	face3.points[POINT_2_X] = 0;
+	face3.points[POINT_2_Y] = 128;
+	face3.points[POINT_2_Z] = 1;
+	face3.points[POINT_3_X] = 1;
+	face3.points[POINT_3_Y] = 128;
+	face3.points[POINT_3_Z] = 0;
+	face3.texture.name = "GROUND1_6";
+	face3.texture.uAxis[AXIS_X] = 1;
+	face3.texture.uAxis[AXIS_Y] = 0;
+	face3.texture.uAxis[AXIS_Z] = 0;
+	face3.texture.vAxis[AXIS_X] = 0;
+	face3.texture.vAxis[AXIS_Y] = -1;
+	face3.texture.vAxis[AXIS_Z] = 0;
+	face3.texture.offsetX = 0;
+	face3.texture.offsetY = 0;
+	face3.texture.rotation = 0;
+	face3.texture.scaleX = 1;
+	face3.texture.scaleY = 1;
+
+	MapFace face4;
+	face4.points[POINT_1_X] = 0;
+	face4.points[POINT_1_Y] = 384;
+	face4.points[POINT_1_Z] = 0;
+	face4.points[POINT_2_X] = 1;
+	face4.points[POINT_2_Y] = 384;
+	face4.points[POINT_2_Z] = 0;
+	face4.points[POINT_3_X] = 0;
+	face4.points[POINT_3_Y] = 384;
+	face4.points[POINT_3_Z] = 1;
+	face4.texture.name = "GROUND1_6";
+	face4.texture.uAxis[AXIS_X] = 1;
+	face4.texture.uAxis[AXIS_Y] = 0;
+	face4.texture.uAxis[AXIS_Z] = 0;
+	face4.texture.vAxis[AXIS_X] = 0;
+	face4.texture.vAxis[AXIS_Y] = -1;
+	face4.texture.vAxis[AXIS_Z] = 0;
+	face4.texture.offsetX = 0;
+	face4.texture.offsetY = 0;
+	face4.texture.rotation = 0;
+	face4.texture.scaleX = 1;
+	face4.texture.scaleY = 1;
+
+	MapFace face5;
+	face5.points[POINT_1_X] = 0;
+	face5.points[POINT_1_Y] = 0;
+	face5.points[POINT_1_Z] = 64;
+	face5.points[POINT_2_X] = 1;
+	face5.points[POINT_2_Y] = 0;
+	face5.points[POINT_2_Z] = 64;
+	face5.points[POINT_3_X] = 0;
+	face5.points[POINT_3_Y] = 1;
+	face5.points[POINT_3_Z] = 64;
+	face5.texture.name = "GROUND1_6";
+	face5.texture.uAxis[AXIS_X] = 1;
+	face5.texture.uAxis[AXIS_Y] = 0;
+	face5.texture.uAxis[AXIS_Z] = 0;
+	face5.texture.vAxis[AXIS_X] = 0;
+	face5.texture.vAxis[AXIS_Y] = -1;
+	face5.texture.vAxis[AXIS_Z] = 0;
+	face5.texture.offsetX = 0;
+	face5.texture.offsetY = 0;
+	face5.texture.rotation = 0;
+	face5.texture.scaleX = 1;
+	face5.texture.scaleY = 1;
+
+	MapFace face6;
+	face6.points[POINT_1_X] = 0;
+	face6.points[POINT_1_Y] = 0;
+	face6.points[POINT_1_Z] = 128;
+	face6.points[POINT_2_X] = 0;
+	face6.points[POINT_2_Y] = 1;
+	face6.points[POINT_2_Z] = 128;
+	face6.points[POINT_3_X] = 1;
+	face6.points[POINT_3_Y] = 0;
+	face6.points[POINT_3_Z] = 128;
+	face6.texture.name = "GROUND1_6";
+	face6.texture.uAxis[AXIS_X] = 1;
+	face6.texture.uAxis[AXIS_Y] = 0;
+	face6.texture.uAxis[AXIS_Z] = 0;
+	face6.texture.vAxis[AXIS_X] = 0;
+	face6.texture.vAxis[AXIS_Y] = -1;
+	face6.texture.vAxis[AXIS_Z] = 0;
+	face6.texture.offsetX = 0;
+	face6.texture.offsetY = 0;
+	face6.texture.rotation = 0;
+	face6.texture.scaleX = 1;
+	face6.texture.scaleY = 1;
+
+	MapFace face7;
+	face7.points[POINT_1_X] = -128;
+	face7.points[POINT_1_Y] = 0;
+	face7.points[POINT_1_Z] = 0;
+	face7.points[POINT_2_X] = 128.2;
+	face7.points[POINT_2_Y] = -1;
+	face7.points[POINT_2_Z] = 0;
+	face7.points[POINT_3_X] = 128;
+	face7.points[POINT_3_Y] = 0;
+	face7.points[POINT_3_Z] = 1;
+	face7.texture.name = "GROUND1_6";
+	face7.texture.uAxis[AXIS_X] = 1;
+	face7.texture.uAxis[AXIS_Y] = 0;
+	face7.texture.uAxis[AXIS_Z] = 0;
+	face7.texture.vAxis[AXIS_X] = 0;
+	face7.texture.vAxis[AXIS_Y] = -1;
+	face7.texture.vAxis[AXIS_Z] = 0;
+	face7.texture.offsetX = 0;
+	face7.texture.offsetY = 0;
+	face7.texture.rotation = 0;
+	face7.texture.scaleX = 1;
+	face7.texture.scaleY = 1;
+
+	MapFace face8;
+	face8.points[POINT_1_X] = 256;
+	face8.points[POINT_1_Y] = 0;
+	face8.points[POINT_1_Z] = 0;
+	face8.points[POINT_2_X] = 256;
+	face8.points[POINT_2_Y] = 0;
+	face8.points[POINT_2_Z] = 1;
+	face8.points[POINT_3_X] = 256;
+	face8.points[POINT_3_Y] = 1;
+	face8.points[POINT_3_Z] = 0;
+	face8.texture.name = "GROUND1_6";
+	face8.texture.uAxis[AXIS_X] = 1;
+	face8.texture.uAxis[AXIS_Y] = 0;
+	face8.texture.uAxis[AXIS_Z] = 0;
+	face8.texture.vAxis[AXIS_X] = 0;
+	face8.texture.vAxis[AXIS_Y] = -1;
+	face8.texture.vAxis[AXIS_Z] = 0;
+	face8.texture.offsetX = 0;
+	face8.texture.offsetY = 0;
+	face8.texture.rotation = 0;
+	face8.texture.scaleX = 1;
+	face8.texture.scaleY = 1;
+
+	MapFace face9;
+	face9.points[POINT_1_X] = 0;
+	face9.points[POINT_1_Y] = 128;
+	face9.points[POINT_1_Z] = 0;
+	face9.points[POINT_2_X] = 0;
+	face9.points[POINT_2_Y] = 128;
+	face9.points[POINT_2_Z] = 1;
+	face9.points[POINT_3_X] = 1;
+	face9.points[POINT_3_Y] = 128;
+	face9.points[POINT_3_Z] = 0;
+	face9.texture.name = "GROUND1_6";
+	face9.texture.uAxis[AXIS_X] = 1;
+	face9.texture.uAxis[AXIS_Y] = 0;
+	face9.texture.uAxis[AXIS_Z] = 0;
+	face9.texture.vAxis[AXIS_X] = 0;
+	face9.texture.vAxis[AXIS_Y] = -1;
+	face9.texture.vAxis[AXIS_Z] = 0;
+	face9.texture.offsetX = 0;
+	face9.texture.offsetY = 0;
+	face9.texture.rotation = 0;
+	face9.texture.scaleX = 1;
+	face9.texture.scaleY = 1;
+
+	MapFace face10;
+	face10.points[POINT_1_X] = 0;
+	face10.points[POINT_1_Y] = 384;
+	face10.points[POINT_1_Z] = 0;
+	face10.points[POINT_2_X] = 1;
+	face10.points[POINT_2_Y] = 384;
+	face10.points[POINT_2_Z] = 0;
+	face10.points[POINT_3_X] = 0;
+	face10.points[POINT_3_Y] = 384;
+	face10.points[POINT_3_Z] = 1;
+	face10.texture.name = "GROUND1_6";
+	face10.texture.uAxis[AXIS_X] = 1;
+	face10.texture.uAxis[AXIS_Y] = 0;
+	face10.texture.uAxis[AXIS_Z] = 0;
+	face10.texture.vAxis[AXIS_X] = 0;
+	face10.texture.vAxis[AXIS_Y] = -1;
+	face10.texture.vAxis[AXIS_Z] = 0;
+	face10.texture.offsetX = 0;
+	face10.texture.offsetY = 0;
+	face10.texture.rotation = 0;
+	face10.texture.scaleX = 1;
+	face10.texture.scaleY = 1;
+
+	MapFace face11;
+	face11.points[POINT_1_X] = 0;
+	face11.points[POINT_1_Y] = 0;
+	face11.points[POINT_1_Z] = 64;
+	face11.points[POINT_2_X] = 1;
+	face11.points[POINT_2_Y] = 0;
+	face11.points[POINT_2_Z] = 64;
+	face11.points[POINT_3_X] = 0;
+	face11.points[POINT_3_Y] = 1;
+	face11.points[POINT_3_Z] = 64;
+	face11.texture.name = "GROUND1_6";
+	face11.texture.uAxis[AXIS_X] = 1;
+	face11.texture.uAxis[AXIS_Y] = 0;
+	face11.texture.uAxis[AXIS_Z] = 0;
+	face11.texture.vAxis[AXIS_X] = 0;
+	face11.texture.vAxis[AXIS_Y] = -1;
+	face11.texture.vAxis[AXIS_Z] = 0;
+	face11.texture.offsetX = 0;
+	face11.texture.offsetY = 0;
+	face11.texture.rotation = 0;
+	face11.texture.scaleX = 1;
+	face11.texture.scaleY = 1;
+
+	MapFace face12;
+	face12.points[POINT_1_X] = 0;
+	face12.points[POINT_1_Y] = 0;
+	face12.points[POINT_1_Z] = 128;
+	face12.points[POINT_2_X] = 0;
+	face12.points[POINT_2_Y] = 1;
+	face12.points[POINT_2_Z] = 128;
+	face12.points[POINT_3_X] = 1;
+	face12.points[POINT_3_Y] = 0;
+	face12.points[POINT_3_Z] = 128;
+	face12.texture.name = "GROUND1_6";
+	face12.texture.uAxis[AXIS_X] = 1;
+	face12.texture.uAxis[AXIS_Y] = 0;
+	face12.texture.uAxis[AXIS_Z] = 0;
+	face12.texture.vAxis[AXIS_X] = 0;
+	face12.texture.vAxis[AXIS_Y] = -1;
+	face12.texture.vAxis[AXIS_Z] = 0;
+	face12.texture.offsetX = 0;
+	face12.texture.offsetY = 0;
+	face12.texture.rotation = 0;
+	face12.texture.scaleX = 1;
+	face12.texture.scaleY = 1;
 
 	Error err;
 	Dictionary *attributes1 = DictionaryInit(0);
@@ -497,14 +1012,40 @@ void TestSuccessfulParse2()
 	DictionarySet(attributes2, "origin", "256 384 160");
 	assert(err == ERR_OK);
 
-	MapBrush brush1 = {(MapFace[]){face1, face2, face3, face4, face5, face6}, 6, 6 * sizeof(MapFace)};
-	MapBrush brush2 = {(MapFace[]){face7, face8, face9, face10, face11, face12}, 6, 6 * sizeof(MapFace)};
-	MapBrush brush3 = {(MapFace[]){}, 0, 0};
+	MapFace faces1[] = {face1, face2, face3, face4, face5, face6};
+	MapFace faces2[] = {face7, face8, face9, face10, face11, face12};
 
-	MapEntity entity1 = {attributes1, (MapBrush[]){brush1, brush2}, 2, 2 * sizeof(MapBrush)};
-	MapEntity entity2 = {attributes2, (MapBrush[]){}, 0, 0};
+	MapBrush brush1;
+	brush1.faces = faces1;
+	brush1.facesCount = 6;
+	brush1.facesSize = 6 * sizeof(MapFace);
 
-	Map map1 = (Map){(MapEntity[]){entity1, entity2}, 2, 2 * sizeof(MapEntity)};
+	MapBrush brush2;
+	brush2.faces = faces2;
+	brush2.facesCount = 6;
+	brush2.facesSize = 6 * sizeof(MapFace);
+
+	MapBrush brushes[] = {brush1, brush2};
+
+	MapEntity entity1;
+	entity1.attributes = attributes1;
+	entity1.brushes = brushes;
+	entity1.brushesCount = 2;
+	entity1.brushesSize = 2 * sizeof(MapBrush);
+
+	MapEntity entity2;
+	entity2.attributes = attributes2;
+	entity2.brushes = NULL;
+	entity2.brushesCount = 0;
+	entity2.brushesSize = 0;
+
+	MapEntity entities[] = {entity1, entity2};
+
+	Map map1;
+	map1.entities = entities;
+	map1.entitiesCount = 2;
+	map1.entitiesSize = 2 * sizeof(MapEntity);
+
 	Map map2;
 
 	FILE *source = tmpfile();

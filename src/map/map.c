@@ -236,7 +236,7 @@ Error MapParse(Map *out, FILE *file)
 	yylex_init(&scanner);
 
 	yyset_in(file, scanner);
-//	yyset_lineno(1, scanner);
+	//	yyset_lineno(1, scanner);
 	long originalPosition = ftell(file);
 
 	if (yyparse(out, scanner) != 0) {

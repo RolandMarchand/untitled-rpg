@@ -50,17 +50,17 @@ int main() {
 
 	for (;i < tokCnt && tok != YYEOF; i++, tok = yylex(&value, scanner)) {
 		if (tok == YYerror || tok == YYUNDEF) {
-			PRINT_ERR("token %lu: unknown token %s\n", i,
+			PRINT_ERR("token %zu: unknown token %s\n", i,
 				  yyget_text(scanner));
 			succeed = -1;
 		}
 		if (expectedTokens[i] != tok) {
-			PRINT_ERR("token %lu: expected token %d, got %d\n",
+			PRINT_ERR("token %zu: expected token %d, got %d\n",
 			      i, expectedTokens[i], tok);
 			succeed = -1;
 		}
 		if (strcmp(expectedLexemes[i], yyget_text(scanner)) != 0) {
-			PRINT_ERR("token %lu: expected lexeme %s, got %s\n",
+			PRINT_ERR("token %zu: expected lexeme %s, got %s\n",
 			      i, expectedLexemes[i], yyget_text(scanner));
 			succeed = -1;
 		}
@@ -77,7 +77,7 @@ int main() {
 	}
 
 	if (i < tokCnt) {
-		PRINT_ERR("Received EOF early at token %lu: %s\n", i,
+		PRINT_ERR("Received EOF early at token %zu: %s\n", i,
 			  yyget_text(scanner));
 		succeed = -1;
 	}
