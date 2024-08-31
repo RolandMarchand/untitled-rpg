@@ -1082,7 +1082,7 @@ void TestFailedParse1()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
@@ -1106,7 +1106,7 @@ void TestFailedParse2()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
@@ -1131,7 +1131,7 @@ void TestFailedParse3()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
@@ -1155,7 +1155,7 @@ void TestFailedParse4()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
@@ -1179,7 +1179,7 @@ void TestFailedParse5()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
@@ -1204,7 +1204,7 @@ void TestFailedParse6()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }
@@ -1232,7 +1232,7 @@ void TestFailedParse7()
 	err = fseek(source, 0, SEEK_SET);
 	assert(err == 0);
 	Map map;
-	ASSERT(MapParse(&map, source) == ERR_SYNTAX_ERROR,
+	ASSERT(MapParse(&map, source) == ERR_INVALID_SYNTAX,
 	       "Expected syntax to be invalid.\n");
 	fclose(source);
 }

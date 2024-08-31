@@ -38,7 +38,7 @@
 			 [ERR_NULL_REFERENCE] = "Null reference encountered",  \
 			 [ERR_OUT_OF_MEMORY] = "Out of memory",                \
 			 [ERR_RESOURCE_NOT_FOUND] = "Resource not found",      \
-			 [ERR_SYNTAX_ERROR] = "Syntax error",                  \
+			 [ERR_INVALID_SYNTAX] = "Syntax error",                  \
 			 [ERR_UNKNOWN] = "Unknown error occurred",             \
 		 }[err] :                                                      \
 		 "Invalid error code")
@@ -55,7 +55,7 @@ typedef enum {
 	ERR_NULL_REFERENCE,
 	ERR_OUT_OF_MEMORY,
 	ERR_RESOURCE_NOT_FOUND,
-	ERR_SYNTAX_ERROR,
+	ERR_INVALID_SYNTAX,
 
 	ERR_UNKNOWN, /* Unknown should be the last error in the enum */
 } Error;

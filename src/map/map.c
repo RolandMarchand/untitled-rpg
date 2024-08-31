@@ -245,7 +245,7 @@ Error MapParse(Map *out, FILE *file)
 			return ERR_FILE_SEEK_FAILURE;
 		}
 		yylex_destroy(scanner);
-		return ERR_SYNTAX_ERROR;
+		return ERR_INVALID_SYNTAX;
 	}
 
 	yylex_destroy(scanner);
