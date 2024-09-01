@@ -168,8 +168,10 @@ static Error ObjWriteFaces(FILE *out, ObjObject *o)
 
 		/* Write vertices. */
 		for (size_t j = 0; j < f.verticesCount; j++) {
-			ObjFaceVertex fv = f.vertices[i];
-			ObjWriteFaceVertex(out, &fv);
+			ObjFaceVertex fv = f.vertices[j];
+			if (ObjWriteFaceVertex(out, &fv) != ERR_OK) {
+				return ERR_INVALID_SYNTAX;
+			}
 		}
 
 		err = fprintf(out, "\n");
@@ -250,7 +252,8 @@ Error ObjGenerateFile(FILE **fileOut, ObjFile *objIn, long *sizeOut)
 	if ((err = ObjWriteMaterialLibrary(*fileOut, objIn)) != ERR_OK
 	    || (err = ObjWriteVertices(*fileOut, objIn)) != ERR_OK
 	    || (err = ObjWriteTextureCoords(*fileOut, objIn)) != ERR_OK
-	    || (err = ObjWriteNormals(*fileOut, objIn)) != ERR_OK) {
+	    || (err = ObjWriteNormals(*fileOut, objIn)) != ERR_OK
+	    || (err = ObjWriteObjects(*fileOut, objIn)) != ERR_OK) {
 		fclose(*fileOut);
 		return err;
 	}
