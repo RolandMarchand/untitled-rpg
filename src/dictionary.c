@@ -51,8 +51,8 @@ Dictionary *DictionaryInit(size_t capacity)
 
 	map->count = 0;
 	map->capacity = capacity;
-	unsigned int seed = time(NULL);
-	map->seed = rand_r(&seed);
+	const char *seed = "super sneaky seed";
+	map->seed = Murmur3Hash(seed, strlen(seed), time(NULL));
 	return map;
 }
 

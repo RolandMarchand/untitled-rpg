@@ -536,7 +536,6 @@ void TestFile()
 	assert(err == ERR_OK);
 	char *fileContents = calloc(outSize + 1, sizeof(char));
 	fread(fileContents, outSize, sizeof(char), out);
-	printf("%s", fileContents);
 	ObjFileFree(&obj);
 	free(fileContents);
 }
@@ -551,7 +550,6 @@ void TestPolygons()
 	assert(err == ERR_OK);
 	char *fileContents = calloc(outSize + 1, sizeof(char));
 	fread(fileContents, outSize, sizeof(char), out);
-	printf("%s", fileContents);
 	ObjFileFree(&obj);
 	free(fileContents);
 }

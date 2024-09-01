@@ -30,7 +30,11 @@ static Error ObjWriteVertices(FILE *out, ObjFile *obj)
 		return ERR_NULL_REFERENCE;
 	}
 
-	int err;
+	if (obj->vertices == NULL) {
+		return ERR_OK;
+	}
+
+	int err = 0;
 	/* Write vertex comment header. */
 	if (obj->verticesCount <= 0) {
 		err = fprintf(out, "# vertices\n");
@@ -56,10 +60,15 @@ static Error ObjWriteVertices(FILE *out, ObjFile *obj)
  * be completed. */
 static Error ObjWriteTextureCoords(FILE *out, ObjFile *obj)
 {
-	assert(out != NULL);
-	assert(obj != NULL);
+	if (out == NULL || obj == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
-	int err;
+	if (obj->textureCoords == NULL) {
+		return ERR_OK;
+	}
+
+	int err = 0;
 	/* Write texture coordinate comment header. */
 	err = fprintf(out, "\n# texture coordinates\n");
 	if (unlikely(err == -1)) {
@@ -84,10 +93,15 @@ static Error ObjWriteTextureCoords(FILE *out, ObjFile *obj)
  * completed. */
 static Error ObjWriteNormals(FILE *out, ObjFile *obj)
 {
-	assert(out != NULL);
-	assert(obj != NULL);
+	if (out == NULL || obj == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
-	int err;
+	if (obj->normals == NULL) {
+		return ERR_OK;
+	}
+
+	int err = 0;
 	/* Write face normal comment header. */
 	err = fprintf(out, "\n# face normals\n");
 	if (unlikely(err == -1)) {
@@ -112,10 +126,11 @@ static Error ObjWriteNormals(FILE *out, ObjFile *obj)
  * completed. */
 static Error ObjWriteFaceVertex(FILE *out, ObjFaceVertex *fv)
 {
-	assert(out != NULL);
-	assert(fv != NULL);
+	if (out == NULL || fv == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
-	int err;
+	int err = 0;
 	if (fv->vertexIdx == 0) {
 		return ERR_INVALID_SYNTAX;
 	}
@@ -148,10 +163,15 @@ static Error ObjWriteFaceVertex(FILE *out, ObjFaceVertex *fv)
  * completed. */
 static Error ObjWriteFaces(FILE *out, ObjObject *o)
 {
-	assert(out != NULL);
-	assert(o != NULL);
+	if (out == NULL || o == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
-	int err;
+	if (o->faces == NULL) {
+		return ERR_OK;
+	}
+
+	int err = 0;
 	/* Write face normals. */
 	for (size_t i = 0; i < o->facesCount; i++) {
 		ObjFace f = o->faces[i];
@@ -190,10 +210,15 @@ static Error ObjWriteFaces(FILE *out, ObjObject *o)
  * completed. */
 static Error ObjWriteObjects(FILE *out, ObjFile *obj)
 {
-	assert(out != NULL);
-	assert(obj != NULL);
+	if (out == NULL || obj == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
-	int err;
+	if (obj->objects == NULL) {
+		return ERR_OK;
+	}
+
+	int err = 0;
 	/* Write object comment header. */
 	err = fprintf(out, "\n# objects\n");
 	if (unlikely(err == -1)) {
@@ -243,7 +268,7 @@ Error ObjGenerateFile(FILE **fileOut, ObjFile *objIn, long *sizeOut)
 		return ERR_NULL_REFERENCE;
 	}
 
-	int err;
+	int err = 0;;
 	*fileOut = tmpfile();
 	if (*fileOut == NULL) {
 		PRINT_ERR("Unable to open temporary file.\n");

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.h"
 #include "map.h"
 
 /* Structures to represent a basic OBJ file. The user is expected to manually
@@ -7,39 +8,39 @@
  * avoid issues with empty attributes. Two functions are provided: ObjFileFree()
  * to tree-walk free the OBJ, and ObjGenerateFile() to serialize it.  */
 
-typedef struct ObjVertex {
+typedef struct ALIGN(16) ObjVertex {
 	float x, y, z;
 } ObjVertex;
 
-typedef struct ObjTextureCoord {
+typedef struct ALIGN(8) ObjTextureCoord {
 	float u, v;
 } ObjTextureCoord;
 
-typedef struct ObjNormal {
+typedef struct ALIGN(16) ObjNormal {
 	float x, y, z;
 } ObjNormal;
 
-typedef struct ObjFaceVertex {
+typedef struct ALIGN(32) ObjFaceVertex {
 	size_t vertexIdx;
 	size_t textureIdx;
 	size_t normalIdx;
 } ObjFaceVertex;
 
-typedef struct ObjFace {
+typedef struct ALIGN(32) ObjFace {
 	char *material;
 	ObjFaceVertex *vertices;
 	size_t verticesCount;
 	size_t verticesSize;
 } ObjFace;
 
-typedef struct ObjObject {
+typedef struct ALIGN(32) ObjObject {
 	char *name;
 	ObjFace *faces;
 	size_t facesCount;
 	size_t facesSize;
 } ObjObject;
 
-typedef struct ObjFile {
+typedef struct ALIGN(128) ObjFile {
 	char *materialLibrary;
 
 	ObjVertex *vertices;
