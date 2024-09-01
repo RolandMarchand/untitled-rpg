@@ -1,5 +1,7 @@
 #include "map/map.h"
+
 #include <assert.h>
+#include <string.h>
 
 #define ASSERT(test, ...)					\
 	do {							\

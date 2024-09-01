@@ -1,6 +1,9 @@
 #include "common.h"
 #include "dictionary.h"
 
+#include <stdio.h>
+#include <string.h>
+
 enum {
 	MAX = 256,
 	LARGE_DATASET_SIZE = 50000,

@@ -1,5 +1,7 @@
 #include "map/obj.h"
+
 #include <assert.h>
+#include <string.h>
 
 #define ASSERT(test, ...)					\
 	do {							\

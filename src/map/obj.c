@@ -5,15 +5,15 @@
  * be completed. */
 static Error ObjWriteMaterialLibrary(FILE *out, ObjFile *obj)
 {
-	assert(out != NULL);
-	assert(obj != NULL);
+	if (out == NULL || obj == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
 	if (obj->materialLibrary == NULL) {
 		return ERR_OK;
 	}
 
-	int err;
-	err = fprintf(out, "mtllib %s\n", obj->materialLibrary);
+	int err = fprintf(out, "mtllib %s\n", obj->materialLibrary);
 	if (unlikely(err == -1)) {
 		PRINT_ERR("Unable to write OBJ to file\n");
 		return ERR_FILE_WRITE_FAILURE;
@@ -26,15 +26,18 @@ static Error ObjWriteMaterialLibrary(FILE *out, ObjFile *obj)
  * completed. */
 static Error ObjWriteVertices(FILE *out, ObjFile *obj)
 {
-	assert(out != NULL);
-	assert(obj != NULL);
+	if (out == NULL || obj == NULL) {
+		return ERR_NULL_REFERENCE;
+	}
 
 	int err;
 	/* Write vertex comment header. */
-	fprintf(out, "# vertices\n");
-	if (unlikely(err == -1)) {
-		PRINT_ERR("Unable to write OBJ to file\n");
-		return ERR_FILE_WRITE_FAILURE;
+	if (obj->verticesCount <= 0) {
+		err = fprintf(out, "# vertices\n");
+		if (unlikely(err == -1)) {
+			PRINT_ERR("Unable to write OBJ to file\n");
+			return ERR_FILE_WRITE_FAILURE;
+		}
 	}
 
 	for (size_t i = 0; i < obj->verticesCount; i++) {
@@ -58,7 +61,7 @@ static Error ObjWriteTextureCoords(FILE *out, ObjFile *obj)
 
 	int err;
 	/* Write texture coordinate comment header. */
-	fprintf(out, "\n# texture coordinates\n");
+	err = fprintf(out, "\n# texture coordinates\n");
 	if (unlikely(err == -1)) {
 		PRINT_ERR("Unable to write OBJ to file\n");
 		return ERR_FILE_WRITE_FAILURE;
@@ -86,7 +89,7 @@ static Error ObjWriteNormals(FILE *out, ObjFile *obj)
 
 	int err;
 	/* Write face normal comment header. */
-	fprintf(out, "\n# face normals\n");
+	err = fprintf(out, "\n# face normals\n");
 	if (unlikely(err == -1)) {
 		PRINT_ERR("Unable to write OBJ to file\n");
 		return ERR_FILE_WRITE_FAILURE;
@@ -192,7 +195,7 @@ static Error ObjWriteObjects(FILE *out, ObjFile *obj)
 
 	int err;
 	/* Write object comment header. */
-	fprintf(out, "\n# objects\n");
+	err = fprintf(out, "\n# objects\n");
 	if (unlikely(err == -1)) {
 		PRINT_ERR("Unable to write OBJ to file\n");
 		return ERR_FILE_WRITE_FAILURE;

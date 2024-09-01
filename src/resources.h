@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include <stdlib.h>
+
 #define ENTITIES_PATH "/sprites/entities"
 #define FONT_PATH "/fonts"
 #define MODELS_PATH "/models"

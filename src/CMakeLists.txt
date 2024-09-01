@@ -1,13 +1,5 @@
 add_subdirectory(map)
 
-message(STATUS "Looking for clang-tidy")
-find_program(CLANG_TIDY NAMES "clang-tidy")
-
-if (CLANG_TIDY)
-  message(STATUS "clang-tidy found")
-  set(CMAKE_C_CLANG_TIDY clang-tidy -p ${CMAKE_BUILD_DIR} ./src/)
-endif()
-
 add_library(dictionary dictionary.c)
 if (MSVC)
 	target_compile_options(dictionary PRIVATE /W4)

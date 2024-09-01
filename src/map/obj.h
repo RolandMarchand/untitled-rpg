@@ -2,6 +2,11 @@
 
 #include "map.h"
 
+/* Structures to represent a basic OBJ file. The user is expected to manually
+ * construct the OBJ. It is recommended to use calloc() instea of malloc() to
+ * avoid issues with empty attributes. Two functions are provided: ObjFileFree()
+ * to tree-walk free the OBJ, and ObjGenerateFile() to serialize it.  */
+
 typedef struct ObjVertex {
 	float x, y, z;
 } ObjVertex;
@@ -53,6 +58,7 @@ typedef struct ObjFile {
 	size_t objectsCount;
 	size_t objectsSize;
 } ObjFile;
+
 
 void ObjFileFree(ObjFile *obj);
 Error ObjGenerateFile(FILE **fileOut, ObjFile *objIn, long *sizeOut);

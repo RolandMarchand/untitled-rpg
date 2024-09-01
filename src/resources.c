@@ -1,7 +1,10 @@
-#include <string.h>
-
 #include "resources.h"
 #include "whereami.h"
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define RESOURCES_ROOT_DIR "/resources"
 
@@ -46,7 +49,7 @@ int GetResourcesPath(char *out, size_t capacity)
 		return -1;
 	}
 
-	int execDirLength;
+	int execDirLength = 0;
 	wai_getExecutablePath(execDirPath, execPathLength, &execDirLength);
 	execDirPath[execDirLength] = '\0';
 
@@ -57,12 +60,12 @@ int GetResourcesPath(char *out, size_t capacity)
 	}
 
 	/* Write to the output buffer. */
-	if (capacity < resourcePathLength + 1) {
+	if (capacity >= resourcePathLength + 1) {
 		/* Unable to write path to output */
 		free(execDirPath);
 		return -1;
 	}
-	snprintf(out, capacity, "%s%s", execDirPath, RESOURCES_ROOT_DIR);
+	int err = snprintf(out, capacity, "%s%s", execDirPath, RESOURCES_ROOT_DIR);
 	free(execDirPath);
-	return IsDirectory(out) ? (int)resourcePathLength : -1;
+	return IsDirectory(out) && err != -1 ? (int)resourcePathLength : -1;
 }

@@ -1,13 +1,10 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #ifdef _MSC_VER
 #define strdup _strdup
+#define ALIGN(x) __declspec(align(x))
+#else
+#define ALIGN(x) __attribute__((aligned(x)))
 #endif
 
 #if defined(__builtin_expect)

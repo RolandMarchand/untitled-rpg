@@ -1,6 +1,12 @@
+#include "common.h"
 #include "dictionary.h"
 
-#define DICTIONARY_MAX_LOAD 0.75
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 enum {
 	DICTIONARY_MAGNITUDE_INCREASE = 2,
 };
@@ -11,13 +17,14 @@ typedef enum {
 	ENTRY_STATE_ZOMBIE
 } EntryState;
 
-struct Entry {
+struct ALIGN(32) Entry {
 	char *key;
 	char *value;
 	uint64_t hash;
 	EntryState state;
 };
 
+static bool DictionaryNeedsResize(Dictionary *dict);
 static Error DictionaryIncreaseSize(Dictionary *dict);
 static uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed);
 
@@ -31,6 +38,8 @@ Dictionary *DictionaryInit(size_t capacity)
 
 	if (capacity == 0) {
 		capacity = DICTIONARY_DEFAULT_CAPACITY;
+	} else if (capacity < DICTIONARY_MIN_CAPACITY) {
+		capacity = DICTIONARY_MIN_CAPACITY;
 	}
 
 	map->entries = calloc(capacity, sizeof(Entry));
@@ -42,7 +51,8 @@ Dictionary *DictionaryInit(size_t capacity)
 
 	map->count = 0;
 	map->capacity = capacity;
-	map->seed = (uint64_t)rand();
+	unsigned int seed = time(NULL);
+	map->seed = rand_r(&seed);
 	return map;
 }
 
@@ -149,8 +159,7 @@ Error DictionarySet(Dictionary *dict, const char *key, const char *value)
 			dict->entries[idx].hash = hash;
 			dict->entries[idx].state = ENTRY_STATE_FILLED;
 			dict->count++;
-			if (dict->count >
-			    dict->capacity * DICTIONARY_MAX_LOAD) {
+			if (DictionaryNeedsResize(dict)) {
 				Error err = DictionaryIncreaseSize(dict);
 				if (err != ERR_OK) {
 					return err;
@@ -279,91 +288,96 @@ bool DictionaryCompare(Dictionary *dict1, Dictionary *dict2)
 
 	/* Compare keys. */
 	/* Allocate space for keys. */
-	char **dict1Keys = malloc(allocSpace);
+	char **dict1Keys = (char**)malloc(allocSpace);
 	if (dict1Keys == NULL) {
 		return ERR_OUT_OF_MEMORY;
 	}
-	char **dict2Keys = malloc(allocSpace);
+	char **dict2Keys = (char**)malloc(allocSpace);
 	if (dict2Keys == NULL) {
-		free(dict1Keys);
+		free((void*)dict1Keys);
 		return ERR_OUT_OF_MEMORY;
 	}
 
 	/* Fetch keys. */
 	Error err = DictionaryGetKeys(dict1, dict1Keys, allocSpace);
 	if (err != ERR_OK) {
-		free(dict1Keys);
-		free(dict2Keys);
+		free((void*)dict1Keys);
+		free((void*)dict2Keys);
 		return false;
 	}
 	err = DictionaryGetKeys(dict2, dict2Keys, allocSpace);
 	if (err != ERR_OK) {
-		free(dict1Keys);
-		free(dict2Keys);
+		free((void*)dict1Keys);
+		free((void*)dict2Keys);
 		return false;
 	}
 
 	/* Sort keys for easy comparison. */
-	qsort(dict1Keys, dict1->count, sizeof(char *),
+	qsort((void*)dict1Keys, dict1->count, sizeof(char *),
 	      DictionaryCompareInternal);
-	qsort(dict2Keys, dict2->count, sizeof(char *),
+	qsort((void*)dict2Keys, dict2->count, sizeof(char *),
 	      DictionaryCompareInternal);
 
 	/* Compare sorted keys. */
 	for (size_t i = 0; i < dict1->count; i++) {
 		if (strcmp(dict1Keys[i], dict2Keys[i]) != 0) {
-			free(dict1Keys);
-			free(dict2Keys);
+			free((void*)dict1Keys);
+			free((void*)dict2Keys);
 			return false;
 		}
 	}
-	free(dict1Keys);
-	free(dict2Keys);
+	free((void*)dict1Keys);
+	free((void*)dict2Keys);
 
 	/* Compare values. */
 	/* Allocate space for values. */
-	char **dict1Values = malloc(allocSpace);
+	char **dict1Values = (char**)malloc(allocSpace);
 	if (dict1Values == NULL) {
 		return ERR_OUT_OF_MEMORY;
 	}
-	char **dict2Values = malloc(allocSpace);
+	char **dict2Values = (char**)malloc(allocSpace);
 	if (dict2Values == NULL) {
-		free(dict1Values);
+		free((void*)dict1Values);
 		return ERR_OUT_OF_MEMORY;
 	}
 
 	/* Fetch values. */
 	err = DictionaryGetValues(dict1, dict1Values, allocSpace);
 	if (err != ERR_OK) {
-		free(dict1Values);
-		free(dict2Values);
+		free((void*)dict1Values);
+		free((void*)dict2Values);
 		return false;
 	}
 	err = DictionaryGetValues(dict2, dict2Values, allocSpace);
 	if (err != ERR_OK) {
-		free(dict1Values);
-		free(dict2Values);
+		free((void*)dict1Values);
+		free((void*)dict2Values);
 		return false;
 	}
 
 	/* Sort values for easy comparison. */
-	qsort(dict1Values, dict1->count, sizeof(char *),
+	qsort((void*)dict1Values, dict1->count, sizeof(char *),
 	      DictionaryCompareInternal);
-	qsort(dict2Values, dict2->count, sizeof(char *),
+	qsort((void*)dict2Values, dict2->count, sizeof(char *),
 	      DictionaryCompareInternal);
 
 	/* Compare sorted values. */
 	for (size_t i = 0; i < dict1->count; i++) {
 		if (strcmp(dict1Values[i], dict2Values[i]) != 0) {
-			free(dict1Values);
-			free(dict2Values);
+			free((void*)dict1Values);
+			free((void*)dict2Values);
 			return false;
 		}
 	}
-	free(dict1Values);
-	free(dict2Values);
+	free((void*)dict1Values);
+	free((void*)dict2Values);
 
 	return true;
+}
+
+bool DictionaryNeedsResize(Dictionary *dict)
+{
+	return dict->capacity * 3 / 4 < dict->count;
 }
 
 Error DictionaryIncreaseSize(Dictionary *dict)
@@ -391,6 +405,8 @@ Error DictionaryIncreaseSize(Dictionary *dict)
 
 		if (unlikely(bigIter >= bigDict->capacity)) {
 			perror("Error while increasing size of dictionary.");
+			free(bigDict->entries);
+			free(bigDict);
 			return ERR_UNKNOWN;
 		}
 
@@ -428,7 +444,7 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 {
 	const uint8_t *data = (const uint8_t *)key;
 	const size_t nblocks = len / 16;
-	size_t i;
+	size_t i = 0;
 
 	uint64_t h1 = seed;
 	uint64_t h2 = seed;
@@ -438,7 +454,7 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 
 	const uint64_t *blocks = (const uint64_t *)(data);
 
-	for (i = 0; i < nblocks; i++) {
+	for (; i < nblocks; i++) {
 		uint64_t k1 = blocks[i * 2 + 0];
 		uint64_t k2 = blocks[i * 2 + 1];
 
@@ -458,7 +474,7 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 		h2 = h2 * 5 + 0x38495ab5;
 	}
 
-	const uint8_t *tail = (const uint8_t *)(data + nblocks * 16);
+	const uint8_t *tail = (data + nblocks * 16);
 
 	uint64_t k1 = 0;
 	uint64_t k2 = 0;
@@ -516,6 +532,8 @@ uint64_t Murmur3Hash(const void *key, size_t len, uint64_t seed)
 		k1 = Rotl(k1, 31);
 		k1 *= c2;
 		h1 ^= k1;
+	default:
+		break;
 	};
 
 	h1 ^= len;

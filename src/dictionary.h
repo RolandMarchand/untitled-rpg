@@ -2,19 +2,26 @@
 
 #include "common.h"
 
-#define DICTIONARY_DEFAULT_CAPACITY 32
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+enum {
+	DICTIONARY_DEFAULT_CAPACITY = 32,
+	DICTIONARY_MIN_CAPACITY = 8,
+};
 
 typedef struct Entry Entry;
 
 /* String to String implementation of a dictionary/hashmap. This implementation
  * is not thread safe. */
-typedef struct Dictionary {
+typedef struct ALIGN(32) Dictionary {
 	/* Dynamic array of Key-value pairs. NULL indicates that the dictionary
 	 * has been freed. */
 	Entry *entries;
 	/* Current count of entries. */
 	size_t count;
-	/* Total capacity of entries. */
+	/* Total capacity of entries, minimum of 8. */
 	size_t capacity;
 	/* Random seed for the hashing function. */
 	uint64_t seed;

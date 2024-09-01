@@ -3,6 +3,8 @@
 #include "common.h"
 #include "dictionary.h"
 
+#include <stdio.h>
+
 typedef enum MapPoint {
 	POINT_1_X = 0,
 	POINT_1_Y,
@@ -21,9 +23,9 @@ typedef enum MapAxis {
 	AXIS_Z,
 } MapAxis;
 
-typedef struct MapFace {
+typedef struct ALIGN(128) MapFace {
 	float points[9];
-	struct MapTexture {
+	struct ALIGN(64) MapTexture {
 		char *name;
 		float uAxis[3];
 		float vAxis[3];
@@ -35,20 +37,20 @@ typedef struct MapFace {
 	} texture;
 } MapFace;
 
-typedef struct MapBrush {
+typedef struct ALIGN(32) MapBrush {
 	MapFace *faces;
 	size_t facesCount;
 	size_t facesSize;
 } MapBrush;
 
-typedef struct MapEntity {
+typedef struct ALIGN(32) MapEntity {
 	Dictionary *attributes;
 	MapBrush *brushes;
 	size_t brushesCount;
 	size_t brushesSize;
 } MapEntity;
 
-typedef struct Map {
+typedef struct ALIGN(32) Map {
 	MapEntity *entities;
 	size_t entitiesCount;
 	size_t entitiesSize;
