@@ -1,10 +1,22 @@
+#include "common.h"
+#include "dictionary.h"
 #include "map.h"
 #include "map_parser.h"
 #include "map_scanner.h"
+#include "obj.h"
+#include "vector3.h"
 
-#define FACE_BUFFER_INIT_SIZE (8 * sizeof(MapFace))
-#define BRUSH_BUFFER_INIT_SIZE (8 * sizeof(MapBrush))
-#define ENTITY_BUFFER_INIT_SIZE (8 * sizeof(MapEntity))
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+enum {
+	FACE_BUFFER_INIT_SIZE = (8 * sizeof(MapFace)),
+	BRUSH_BUFFER_INIT_SIZE = (8 * sizeof(MapBrush)),
+	ENTITY_BUFFER_INIT_SIZE = (8 * sizeof(MapEntity)),
+};
 
 Error MapBrushInit(MapBrush *out)
 {
@@ -154,10 +166,11 @@ Error MapBrushAddFace(MapBrush *out, const MapFace *toCopy)
 	/* Increase the size of the array if needed. */
 	if (out->facesCount * sizeof(MapFace) == out->facesSize) {
 		out->facesSize *= 2;
-		out->faces = realloc(out->faces, out->facesSize);
-		if (out->faces == NULL) {
+		MapFace *faces = realloc(out->faces, out->facesSize);
+		if (faces == NULL) {
 			return ERR_OUT_OF_MEMORY;
 		}
+		out->faces = faces;
 	}
 
 	Error err = MapFaceDuplicate(&out->faces[out->facesCount], toCopy);
@@ -171,10 +184,11 @@ Error MapEntityAddBrush(MapEntity *out, const MapBrush *toCopy)
 	/* Increase the size of the array if needed. */
 	if (out->brushesCount * sizeof(MapBrush) == out->brushesSize) {
 		out->brushesSize *= 2;
-		out->brushes = realloc(out->brushes, out->brushesSize);
-		if (out->brushes == NULL) {
+		MapBrush *brushes = realloc(out->brushes, out->brushesSize);
+		if (brushes == NULL) {
 			return ERR_OUT_OF_MEMORY;
 		}
+		out->brushes = brushes;
 	}
 
 	Error err = MapBrushDuplicate(&out->brushes[out->brushesCount], toCopy);
@@ -188,10 +202,11 @@ Error MapAddEntity(Map *out, const MapEntity *toCopy)
 	/* Increase the size of the array if needed. */
 	if (out->entitiesCount * sizeof(MapEntity) == out->entitiesSize) {
 		out->entitiesSize *= 2;
-		out->entities = realloc(out->entities, out->entitiesSize);
-		if (out->entities == NULL) {
+		MapEntity *entities = realloc(out->entities, out->entitiesSize);
+		if (entities == NULL) {
 			return ERR_OUT_OF_MEMORY;
 		}
+		out->entities = entities;
 	}
 
 	Error err =
@@ -232,7 +247,7 @@ Error MapParse(Map *out, FILE *file)
 		return ERR_NULL_REFERENCE;
 	}
 
-	yyscan_t scanner;
+	yyscan_t scanner = NULL;
 	yylex_init(&scanner);
 
 	yyset_in(file, scanner);
@@ -251,3 +266,89 @@ Error MapParse(Map *out, FILE *file)
 	yylex_destroy(scanner);
 	return ERR_OK;
 }
+
+static size_t MapBrushCount(const Map *map)
+{
+	if (map == NULL) {
+		return 0;
+	}
+
+	size_t ret = 0;
+
+	for (size_t i = 0; i < map->entitiesCount; i++) {
+		ret += map->entities[i].brushesCount;
+	}
+
+	return ret;
+}
+
+static ObjObject BrushToObjObject(const MapBrush *in)
+{
+	struct ALIGN(128){
+		Plane plane;
+		size_t verticesCount;
+		Vector3 vertices[5];
+	} f[32] = {0};
+
+	Plane *faces = malloc(in->facesCount * sizeof(Plane));
+	for (int i = 0; i < in->facesCount; i++) {
+		faces[i] = MapFaceToPlane(&in->faces[i]);
+		f[i].plane = faces[i];
+		printf("Face %d: %g\t%g\t%g\n", i, faces[i].normal.x, -faces[i].normal.z, faces[i].normal.y);
+	}
+
+	for (int i = 0; i < in->facesCount - 2; i++) {
+		for (int j = i; j < in->facesCount - 1; j++) {
+			for (int k = j; k < in->facesCount; k++) {
+				if (i == j || i == k || j == k) {
+					continue;
+				}
+
+				bool legal = true;
+				Vector3 newVertex;
+				bool intersects = GetIntersection(faces[i], faces[j], faces[k],
+						&newVertex);
+				if (!intersects) {
+					continue;
+				}
+
+				for (int m = 0; legal && m < in->facesCount; m++) {
+					float distanceFromPlane = Dot(faces[m].normal, newVertex) - faces[m].d;
+					bool pointInsidePlane = NearlyEqual(distanceFromPlane, 0, FLT_EPSILON)
+						|| LessThan(distanceFromPlane, 0, FLT_EPSILON);
+					legal = legal && pointInsidePlane;
+				}
+
+				if (legal) {
+					f[i].vertices[f[i].verticesCount++] = newVertex;
+					f[j].vertices[f[j].verticesCount++] = newVertex;
+					f[k].vertices[f[k].verticesCount++] = newVertex;
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < in->facesCount; i++) {
+		printf("f [%g, %g, %g]: ", f[i].plane.normal.x, -f[i].plane.normal.z, f[i].plane.normal.y);
+		for (int j = 0; j < f[i].verticesCount; j++) {
+			printf("(%g, %g, %g) ", f[i].vertices[j].x, -f[i].vertices[j].z, f[i].vertices[j].y);
+		}
+		printf("\n");
+	}
+
+	free(faces);
+	ObjObject o = {0};
+	return o;
+}
+
+Error MapToObj(const Map *in, ObjFile *out)
+{
+	for (int i = 0; i < in->entitiesCount; i++) {
+		for (int j = 0; j < in->entities[i].brushesCount; j++) {
+			BrushToObjObject(&in->entities[i].brushes[j]);
+		}
+	}
+
+	return ERR_OK;
+}
+

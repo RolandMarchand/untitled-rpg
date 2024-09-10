@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common.h"
-#include "map.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Structures to represent a basic OBJ file. The user is expected to manually
  * construct the OBJ. It is recommended to use calloc() instea of malloc() to

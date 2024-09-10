@@ -33,7 +33,7 @@ endif()
 
 # .MAP file parser
 add_library(map map.c map_scanner.c map_parser.c obj.c)
-target_link_libraries(map dictionary)
+target_link_libraries(map PRIVATE dictionary m)
 set_source_files_properties(
   map_parser.c map_scanner.c map_parser.h map_scanner.h
   PROPERTIES SKIP_LINTING ON)

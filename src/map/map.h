@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "dictionary.h"
+#include "obj.h"
 
 #include <stdio.h>
 
@@ -106,4 +107,4 @@ Error MapDuplicate(Map *out, const Map *in);
 /* TODO: continue the doc. The file position will be at the end if successful, and back where it originally was if not successful. Out will be null is in case of an error. Map does not need to be freed if the parsing fails.*/
 Error MapParse(Map *out, FILE *file);
 
-void MapDebug(Map *db);
+Error MapToObj(const Map *in, ObjFile *out);
